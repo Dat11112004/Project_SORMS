@@ -152,16 +152,16 @@ builder.Services.AddEndpointsApiExplorer();
     });
 
     // 6. Cấu hình CORS nếu cần
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowAll", policy =>
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
         {
-            policy.AllowAnyOrigin()
+            policy.WithOrigins("http://localhost:5173")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
-    });
-
+});
     builder.Services.AddControllers();
     builder.Services.AddAuthorization();
 
@@ -175,9 +175,10 @@ builder.Services.AddEndpointsApiExplorer();
         app.UseSwaggerUI();
     }
 
-    app.UseHttpsRedirection();
+    // app.UseHttpsRedirection();
     app.UseCors("AllowAll");
     app.UseAuthentication();
+    app.UseCors("AllowFrontend");
     app.UseAuthorization();
     app.MapControllers();
 
