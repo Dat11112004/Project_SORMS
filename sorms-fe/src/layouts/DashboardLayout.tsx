@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 import {
   LayoutDashboard, Users, DoorOpen, LogIn, FileText, Bell, BarChart3,
-  UserCog, ChevronDown, ChevronRight, LogOut, Menu, X, Settings, User,
+  UserCog, ChevronDown, ChevronRight, LogOut, Menu, Settings, User,
+  Moon, Sun,
 } from 'lucide-react';
 
 interface NavItem {
@@ -104,6 +106,7 @@ const navItems: NavItem[] = [
 
 export default function DashboardLayout() {
   const { user, logout } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -300,6 +303,13 @@ export default function DashboardLayout() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button
+              onClick={toggleTheme}
+              className="btn btn-ghost btn-sm"
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <NavLink to="/settings/change-password" className="btn btn-ghost btn-sm">
               <Settings size={18} />
             </NavLink>

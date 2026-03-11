@@ -1,4 +1,4 @@
-﻿namespace SORMS.API.DTOs
+namespace SORMS.API.DTOs
 {
     public class RoomDto
     {
@@ -13,6 +13,7 @@
         public bool IsAvailable { get; set; } // Opposite of IsOccupied
         public string? CurrentResident { get; set; }
         public string? Description { get; set; }
+        public string? ImageUrl { get; set; }
         public bool IsActive { get; set; } = true;
     }
 }

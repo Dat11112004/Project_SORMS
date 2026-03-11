@@ -49,10 +49,23 @@ export default function RoomListPage({ availableOnly = false }: { availableOnly?
         {filtered.length === 0 ? <EmptyState message="No rooms found" /> : (
           <div style={{ overflowX: 'auto' }}>
             <table className="data-table">
-              <thead><tr><th>Room</th><th>Type</th><th>Floor</th><th>Area</th><th>Rent</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Image</th><th>Room</th><th>Type</th><th>Floor</th><th>Area</th><th>Rent</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody>
                 {filtered.map((r) => (
                   <tr key={r.id}>
+                    <td>
+                      {r.imageUrl ? (
+                        <img 
+                          src={`http://localhost:5183${r.imageUrl}`} 
+                          alt={`Room ${r.roomNumber}`}
+                          style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: '0.5rem' }}
+                        />
+                      ) : (
+                        <div style={{ width: 48, height: 48, borderRadius: '0.5rem', backgroundColor: 'var(--bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                          N/A
+                        </div>
+                      )}
+                    </td>
                     <td style={{ fontWeight: 500 }}>{r.roomNumber}</td>
                     <td>{r.type || r.roomType}</td>
                     <td>{r.floor}</td>

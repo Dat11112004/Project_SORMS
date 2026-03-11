@@ -12,6 +12,31 @@
   --color-danger: #ef4444;
   --color-info: #3b82f6;
 
+  /* Light Theme Defaults */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f1f5f9;
+  --bg-input: #ffffff;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --border-color: #e2e8f0;
+  --border-focus: #6366f1;
+  
+  --bg-glass: rgba(255, 255, 255, 0.7);
+  --border-glass: rgba(226, 232, 240, 0.5);
+  --border-table: rgba(226, 232, 240, 1);
+  --btn-secondary-hover: rgba(226, 232, 240, 0.8);
+
+  --radius: 0.75rem;
+  --sidebar-width: 260px;
+}
+
+.dark {
+  /* Dark Theme Overrides */
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-card: #1e293b;
@@ -24,8 +49,11 @@
 
   --border-color: #334155;
   --border-focus: #6366f1;
-  --radius: 0.75rem;
-  --sidebar-width: 260px;
+
+  --bg-glass: rgba(30, 41, 59, 0.7);
+  --border-glass: rgba(51, 65, 85, 0.5);
+  --border-table: rgba(51, 65, 85, 0.3);
+  --btn-secondary-hover: rgba(71, 85, 105, 0.6);
 }
 
 /* ===== Base Styles ===== */
@@ -64,11 +92,19 @@ body {
   background: var(--text-muted);
 }
 
+/* ===== Auth Background ===== */
+.auth-bg {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%);
+}
+.dark .auth-bg {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+}
+
 /* ===== Glass Card ===== */
 .glass-card {
-  background: rgba(30, 41, 59, 0.7);
+  background: var(--bg-glass);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(51, 65, 85, 0.5);
+  border: 1px solid var(--border-glass);
   border-radius: var(--radius);
 }
 
@@ -131,7 +167,7 @@ body {
 }
 .data-table td {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+  border-bottom: 1px solid var(--border-table);
   font-size: 0.875rem;
 }
 .data-table tbody tr {
@@ -202,7 +238,7 @@ body {
   color: var(--text-primary);
 }
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(71, 85, 105, 0.6);
+  background: var(--btn-secondary-hover);
 }
 .btn-danger {
   background: var(--color-danger);

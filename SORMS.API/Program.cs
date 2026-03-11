@@ -176,6 +176,10 @@ builder.Services.AddEndpointsApiExplorer();
     }
 
     app.UseHttpsRedirection();
+    
+    // Enable serving static files from wwwroot
+    app.UseStaticFiles();
+
     app.UseCors("AllowAll");
     app.UseAuthentication();
     app.UseAuthorization();

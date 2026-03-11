@@ -1,15 +1,27 @@
 import { Outlet } from 'react-router-dom';
+import { useThemeStore } from '../store/themeStore';
+import { Moon, Sun } from 'lucide-react';
 
 export default function AuthLayout() {
+  const { theme, toggleTheme } = useThemeStore();
+
   return (
-    <div style={{
+    <div className="auth-bg" style={{
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
       padding: '1rem',
+      position: 'relative',
     }}>
+      <button
+        onClick={toggleTheme}
+        className="btn btn-ghost btn-sm"
+        style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 10 }}
+        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      >
+        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
         <div style={{
           position: 'absolute', width: 400, height: 400, borderRadius: '50%',
