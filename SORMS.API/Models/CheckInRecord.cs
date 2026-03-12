@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -29,6 +29,10 @@ namespace SORMS.API.Models
 
         public DateTime? CheckInTime { get; set; } // Thời gian check-in thực tế
 
+        public DateTime? ExpectedCheckInDate { get; set; } // Ngày dự kiến nhận phòng (để giữ phòng)
+
+        public DateTime? ExpectedCheckOutDate { get; set; } // Ngày dự kiến trả phòng (để giữ phòng)
+
         public DateTime? CheckOutRequestTime { get; set; } // Thời gian yêu cầu check-out
 
         public DateTime? CheckOutTime { get; set; } // Thời gian check-out thực tế
@@ -47,5 +51,7 @@ namespace SORMS.API.Models
 
         [Required, MaxLength(20)]
         public string RequestType { get; set; } // CheckIn, CheckOut
+
+        public int NumberOfResidents { get; set; } = 1;
     }
 }

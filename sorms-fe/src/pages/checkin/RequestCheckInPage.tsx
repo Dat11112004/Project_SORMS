@@ -13,19 +13,46 @@ export default function RequestCheckInPage() {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
+  const [numberOfResidents, setNumberOfResidents] = useState(1);
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const fetchAvailableRooms = () => {
+    setLoading(true);
+    roomApi.getAvailable(checkInDate, checkOutDate)
+      .then((r) => setRooms(r.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
   useEffect(() => {
-    roomApi.getAll().then((r) => setRooms(r.data)).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+    // If you only want to search when both dates are entered, uncomment below
+    // if (checkInDate && checkOutDate) { fetchAvailableRooms(); }
+    fetchAvailableRooms();
+  }, [checkInDate, checkOutDate]);
 
   const handleCheckIn = async (roomId: number) => {
-    if (!confirm('Request check-in to this room?')) return;
+    if (!checkInDate || !checkOutDate) {
+      setError('Please select check-in and check-out dates.');
+      return;
+    }
+    if (new Date(checkInDate) >= new Date(checkOutDate)) {
+      setError('Check-out date must be after check-in date.');
+      return;
+    }
+    if (!confirm('Request check-in to this room for selected dates?')) return;
     setSubmitting(true); setError(''); setSuccess('');
     try {
-      await checkInApi.requestCheckIn({ roomId });
+      await checkInApi.requestCheckIn({ 
+        roomId,
+        expectedCheckInDate: new Date(checkInDate).toISOString(),
+        expectedCheckOutDate: new Date(checkOutDate).toISOString(),
+        numberOfResidents: numberOfResidents
+      });
       setSuccess('Check-in request submitted! Waiting for approval.');
-      // Refresh rooms array or logically update it
-      const newRoomsList = await roomApi.getAll();
-      setRooms(newRoomsList.data);
+      fetchAvailableRooms();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to request check-in.');
     } finally { setSubmitting(false); }
@@ -36,6 +63,20 @@ export default function RequestCheckInPage() {
   return (
     <div>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Request Check-In</h1>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', backgroundColor: 'var(--bg-glass)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid var(--border-color)' }}>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }}>Check-In Date</label>
+          <input type="date" className="form-input" style={{ width: '100%' }} value={checkInDate} min={today} onChange={(e) => setCheckInDate(e.target.value)} onKeyDown={(e) => e.preventDefault()} />
+        </div>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }}>Check-Out Date</label>
+          <input type="date" className="form-input" style={{ width: '100%' }} value={checkOutDate} min={checkInDate || today} onChange={(e) => setCheckOutDate(e.target.value)} onKeyDown={(e) => e.preventDefault()} />
+        </div>
+        <div style={{ flex: 1, minWidth: '150px' }}>
+          <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: 500 }}>Occupants</label>
+          <input type="number" className="form-input" style={{ width: '100%' }} value={numberOfResidents} min={1} max={10} onChange={(e) => setNumberOfResidents(parseInt(e.target.value) || 1)} />
+        </div>
+      </div>
       {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#f87171' }}>{error}</div>}
       {success && <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#34d399' }}>{success}</div>}
       {rooms.length === 0 ? <EmptyState message="No rooms available" /> : (

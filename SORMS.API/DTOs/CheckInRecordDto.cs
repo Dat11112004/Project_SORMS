@@ -1,4 +1,4 @@
-﻿namespace SORMS.API.DTOs
+namespace SORMS.API.DTOs
 {
     public class CheckInRecordDto
     {
@@ -10,6 +10,8 @@
         public DateTime RequestTime { get; set; }
         public DateTime? ApprovedTime { get; set; }
         public DateTime? CheckInTime { get; set; }
+        public DateTime? ExpectedCheckInDate { get; set; }
+        public DateTime? ExpectedCheckOutDate { get; set; }
         public DateTime? CheckOutRequestTime { get; set; }
         public DateTime? CheckOutTime { get; set; }
         public string Status { get; set; } // PendingCheckIn, CheckedIn, PendingCheckOut, CheckedOut, Rejected
@@ -17,11 +19,15 @@
         public int? ApprovedBy { get; set; }
         public string? ApprovedByName { get; set; }
         public string RequestType { get; set; } // CheckIn, CheckOut
+        public int NumberOfResidents { get; set; }
     }
 
     public class CreateCheckInRequestDto
     {
         public int RoomId { get; set; }
+        public DateTime ExpectedCheckInDate { get; set; }
+        public DateTime ExpectedCheckOutDate { get; set; }
+        public int NumberOfResidents { get; set; }
     }
 
     public class CreateCheckOutRequestDto

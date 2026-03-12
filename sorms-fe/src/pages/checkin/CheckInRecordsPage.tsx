@@ -33,13 +33,17 @@ export default function CheckInRecordsPage() {
         {filtered.length === 0 ? <EmptyState message="No records found" /> : (
           <div style={{ overflowX: 'auto' }}>
             <table className="data-table">
-              <thead><tr><th>Resident</th><th>Room</th><th>Request</th><th>Check-In</th><th>Check-Out</th><th>Status</th><th>Approved By</th></tr></thead>
+              <thead><tr><th>Resident</th><th>Room</th><th>Request</th><th>Expected Dates</th><th>Check-In</th><th>Check-Out</th><th>Status</th><th>Approved By</th></tr></thead>
               <tbody>
                 {filtered.map((r) => (
                   <tr key={r.id}>
                     <td style={{ fontWeight: 500 }}>{r.residentName}</td>
                     <td>{r.roomNumber}</td>
                     <td style={{ fontSize: '0.8125rem' }}>{new Date(r.requestTime).toLocaleString()}</td>
+                    <td style={{ fontSize: '0.8125rem' }}>
+                      {r.expectedCheckInDate ? new Date(r.expectedCheckInDate).toLocaleDateString() : '—'} <br/>
+                      to {r.expectedCheckOutDate ? new Date(r.expectedCheckOutDate).toLocaleDateString() : '—'}
+                    </td>
                     <td style={{ fontSize: '0.8125rem' }}>{r.checkInTime ? new Date(r.checkInTime).toLocaleString() : '—'}</td>
                     <td style={{ fontSize: '0.8125rem' }}>{r.checkOutTime ? new Date(r.checkOutTime).toLocaleString() : '—'}</td>
                     <td><StatusBadge status={r.status} /></td>

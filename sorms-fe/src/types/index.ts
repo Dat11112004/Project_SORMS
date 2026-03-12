@@ -117,6 +117,8 @@ export interface CheckInRecordDto {
   roomId: number;
   roomNumber: string;
   requestTime: string;
+  expectedCheckInDate?: string;
+  expectedCheckOutDate?: string;
   approvedTime?: string;
   checkInTime?: string;
   checkOutRequestTime?: string;
@@ -126,10 +128,14 @@ export interface CheckInRecordDto {
   approvedBy?: number;
   approvedByName?: string;
   requestType: string;
+  numberOfResidents: number;
 }
 
 export interface CreateCheckInRequest {
   roomId: number;
+  expectedCheckInDate: string;
+  expectedCheckOutDate: string;
+  numberOfResidents: number;
 }
 
 export interface CreateCheckOutRequest {
@@ -258,4 +264,54 @@ export interface InvoiceDto {
   checkoutUrl?: string;
   createdAt: string;
   paidAt?: string;
+}
+
+// ===== Food Ordering =====
+export interface FoodItemDto {
+  id: number;
+  name: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
+  isAvailable: boolean;
+}
+
+export interface CreateFoodItemDto {
+  name: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
+  isAvailable?: boolean;
+}
+
+export interface FoodOrderDto {
+  id: number;
+  residentId: number;
+  residentName: string;
+  totalPrice: number;
+  status: string;
+  orderDate: string;
+  deliveryDate?: string;
+  items: FoodOrderItemDto[];
+}
+
+export interface FoodOrderItemDto {
+  id: number;
+  foodItemId: number;
+  foodName: string;
+  quantity: number;
+  price: number;
+}
+
+export interface OrderItemRequest {
+  foodItemId: number;
+  quantity: number;
+}
+
+export interface CreateFoodOrderRequest {
+  items: OrderItemRequest[];
+}
+
+export interface UpdateFoodOrderStatusRequest {
+  status: string; // "Preparing", "Delivered", "Cancelled"
 }

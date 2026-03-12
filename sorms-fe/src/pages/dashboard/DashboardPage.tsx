@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Users, DoorOpen, DoorClosed, Clock, FileText, Bell } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Users, DoorOpen, DoorClosed, Clock, FileText, Bell, Eye } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import StatsCard from '../../components/StatsCard';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import StatusBadge from '../../components/StatusBadge';
+import { useAuthStore } from '../../store/authStore';
 import { residentApi } from '../../api/residents';
 import { roomApi } from '../../api/rooms';
 import { serviceRequestApi } from '../../api/serviceRequests';
@@ -12,6 +15,9 @@ import type { ResidentDto, RoomDto, ServiceRequestDto } from '../../types';
 const COLORS = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function DashboardPage() {
+  const { user } = useAuthStore();
+  const isResident = user?.userRole === 'Resident';
+
   const [loading, setLoading] = useState(true);
   const [residents, setResidents] = useState<ResidentDto[]>([]);
   const [rooms, setRooms] = useState<RoomDto[]>([]);
@@ -56,21 +62,21 @@ export default function DashboardPage() {
   ];
 
   const serviceByType: Record<string, number> = {};
-  serviceRequests.forEach((sr) => {
+  serviceRequests.forEach((sr: ServiceRequestDto) => {
     serviceByType[sr.serviceType] = (serviceByType[sr.serviceType] || 0) + 1;
   });
   const serviceTypeData = Object.entries(serviceByType).map(([name, value]) => ({ name, value }));
 
   const serviceByStatus: Record<string, number> = {};
-  serviceRequests.forEach((sr) => {
+  serviceRequests.forEach((sr: ServiceRequestDto) => {
     serviceByStatus[sr.status] = (serviceByStatus[sr.status] || 0) + 1;
   });
   const serviceStatusData = Object.entries(serviceByStatus).map(([name, value]) => ({ name, value }));
 
   // Revenue estimation by rooms
   const monthlyRevenue = rooms
-    .filter((r) => r.status === 'Occupied')
-    .reduce((sum, r) => sum + (r.monthlyRent || 0), 0);
+    .filter((r: RoomDto) => r.status === 'Occupied')
+    .reduce((sum: number, r: RoomDto) => sum + (r.monthlyRent || 0), 0);
 
   const revenueData = [
     { name: 'Current Month', revenue: monthlyRevenue },
@@ -91,14 +97,82 @@ export default function DashboardPage() {
         <StatsCard title="Total Residents" value={residents.length} icon={<Users size={22} />} gradient="gradient-primary" />
         <StatsCard title="Total Rooms" value={totalRooms} icon={<DoorOpen size={22} />} gradient="gradient-secondary" />
         <StatsCard title="Available Rooms" value={availableRooms} icon={<DoorClosed size={22} />} gradient="gradient-success" />
-        <StatsCard title="Pending Check-Ins" value={pendingCheckIns} icon={<Clock size={22} />} gradient="gradient-warning" />
-        <StatsCard title="Service Requests" value={serviceRequests.length} icon={<FileText size={22} />} gradient="gradient-info" subtitle={`${pendingSR} pending`} />
-        <StatsCard title="Monthly Revenue" value={`$${monthlyRevenue.toLocaleString()}`} icon={<Bell size={22} />} gradient="gradient-danger" />
+        
+        {!isResident && (
+          <>
+            <StatsCard title="Pending Check-Ins" value={pendingCheckIns} icon={<Clock size={22} />} gradient="gradient-warning" />
+            <StatsCard title="Service Requests" value={serviceRequests.length} icon={<FileText size={22} />} gradient="gradient-info" subtitle={`${pendingSR} pending`} />
+            <StatsCard title="Monthly Revenue" value={`$${monthlyRevenue.toLocaleString()}`} icon={<Bell size={22} />} gradient="gradient-danger" />
+          </>
+        )}
       </div>
 
+      {isResident && (
+        <div className="glass-card" style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: 600 }}>Available Rooms</h2>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Room</th>
+                  <th>Type</th>
+                  <th>Floor</th>
+                  <th>Area</th>
+                  <th>Rent</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rooms.filter((r: RoomDto) => r.status === 'Available').length > 0 ? (
+                  rooms.filter((r: RoomDto) => r.status === 'Available').map((room: RoomDto) => (
+                    <tr key={room.id}>
+                      <td>
+                        {room.imageUrl ? (
+                          <img 
+                            src={`http://localhost:5183${room.imageUrl}`} 
+                            alt={`Room ${room.roomNumber}`}
+                            style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: '0.5rem' }}
+                          />
+                        ) : (
+                          <div style={{ width: 48, height: 48, borderRadius: '0.5rem', backgroundColor: 'var(--bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                            N/A
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ fontWeight: 500 }}>{room.roomNumber}</td>
+                      <td>{room.type || room.roomType}</td>
+                      <td>{room.floor}</td>
+                      <td>{room.area} m²</td>
+                      <td>${room.monthlyRent?.toLocaleString()}</td>
+                      <td><StatusBadge status={room.status} /></td>
+                      <td>
+                        <Link to={`/rooms/${room.id}`} className="btn btn-ghost btn-sm">
+                          <Eye size={16} />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={8} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                      No rooms currently available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Charts Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1rem' }}>
-        {/* Occupancy Pie */}
+      {!isResident && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1rem' }}>
+          {/* Occupancy Pie */}
         <div className="glass-card" style={{ padding: '1.25rem' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Room Occupancy</h3>
           <ResponsiveContainer width="100%" height={260}>
@@ -159,7 +233,8 @@ export default function DashboardPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

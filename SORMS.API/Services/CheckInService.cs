@@ -18,7 +18,7 @@ namespace SORMS.API.Services
         }
 
         // Resident tạo yêu cầu check-in vào phòng
-        public async Task<CheckInRecordDto> CreateCheckInRequestAsync(int residentId, int roomId)
+        public async Task<CheckInRecordDto> CreateCheckInRequestAsync(int residentId, int roomId, DateTime expectedCheckInDate, DateTime expectedCheckOutDate, int numberOfResidents)
         {
             // Kiểm tra resident có tồn tại không
             var resident = await _context.Residents.FindAsync(residentId);
@@ -34,22 +34,31 @@ namespace SORMS.API.Services
             if (existingRecord != null)
                 throw new Exception("Bạn đã có yêu cầu đang chờ hoặc đang ở trong phòng");
 
-            // Kiểm tra phòng có tồn tại và còn trống không
+            // Kiểm tra phòng có tồn tại không
             var room = await _context.Rooms.FindAsync(roomId);
             if (room == null)
                 throw new Exception("Phòng không tồn tại");
 
-            if (room.Status != "Available")
-                throw new Exception("Phòng đã có người ở hoặc đang bảo trì");
+            // Kiểm tra xem phòng có trống trong khoảng thời gian này không
+            var overlappingBookings = await _context.CheckInRecords
+                .Where(c => c.RoomId == roomId && c.Status != "Rejected" && c.Status != "CheckedOut" && c.ExpectedCheckInDate != null && c.ExpectedCheckOutDate != null)
+                .Where(c => c.ExpectedCheckInDate < expectedCheckOutDate && c.ExpectedCheckOutDate > expectedCheckInDate)
+                .AnyAsync();
+
+            if (overlappingBookings)
+                throw new Exception("Phòng đã được đặt trong khoảng thời gian này");
 
             // Tạo yêu cầu check-in
             var checkInRequest = new CheckInRecord
             {
                 ResidentId = residentId,
                 RoomId = roomId,
+                ExpectedCheckInDate = expectedCheckInDate,
+                ExpectedCheckOutDate = expectedCheckOutDate,
                 RequestTime = DateTime.UtcNow,
                 Status = "PendingCheckIn",
-                RequestType = "CheckIn"
+                RequestType = "CheckIn",
+                NumberOfResidents = numberOfResidents
             };
 
             _context.CheckInRecords.Add(checkInRequest);
@@ -123,8 +132,7 @@ namespace SORMS.API.Services
                 record.CheckInTime = DateTime.UtcNow;
                 
                 // Cập nhật trạng thái phòng
-                record.Room.Status = "Occupied";
-                record.Room.CurrentResident = record.Resident.FullName; // Cập nhật tên cư dân hiện tại
+                // Không cập nhật tĩnh, ta sẽ tính toán động ở RoomService
                 
                 // Cập nhật thông tin resident
                 record.Resident.RoomId = record.RoomId;
@@ -183,8 +191,7 @@ namespace SORMS.API.Services
                 record.CheckOutTime = DateTime.UtcNow;
                 
                 // Cập nhật trạng thái phòng
-                record.Room.Status = "Available";
-                record.Room.CurrentResident = null; // Xóa tên cư dân hiện tại
+                // Không cập nhật tĩnh, ta sẽ báo trống bằng logic của CheckInRecord
                 
                 // Cập nhật thông tin resident
                 record.Resident.RoomId = null;
@@ -360,7 +367,8 @@ namespace SORMS.API.Services
                 RejectReason = record.RejectReason,
                 ApprovedBy = record.ApprovedBy,
                 ApprovedByName = approvedByName,
-                RequestType = record.RequestType
+                RequestType = record.RequestType,
+                NumberOfResidents = record.NumberOfResidents
             };
         }
 
