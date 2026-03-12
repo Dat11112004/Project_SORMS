@@ -31,7 +31,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 builder.Services.AddDbContext<SormsDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
 
 // 3. Đăng ký các service
 builder.Services.AddScoped<IEmailService, EmailService>();

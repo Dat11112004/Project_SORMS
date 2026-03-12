@@ -11,7 +11,7 @@
         {
             // Cấu hình DbContext với chuỗi kết nối từ appsettings.json
             services.AddDbContext<SormsDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
         }
     }
 
