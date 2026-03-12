@@ -16,6 +16,10 @@ const statusMap: Record<string, { className: string; label: string }> = {
   Completed: { className: 'badge-success', label: 'Completed' },
   // Report statuses
   Reviewed: { className: 'badge-success', label: 'Reviewed' },
+  // Room statuses
+  Available: { className: 'badge-success', label: 'Available' },
+  Occupied: { className: 'badge-warning', label: 'Occupied' },
+  Maintenance: { className: 'badge-danger', label: 'Maintenance' },
   // Active
   Active: { className: 'badge-success', label: 'Active' },
   Inactive: { className: 'badge-danger', label: 'Inactive' },

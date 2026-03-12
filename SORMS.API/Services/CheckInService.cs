@@ -1,4 +1,4 @@
-﻿namespace SORMS.API.Services
+namespace SORMS.API.Services
 {
     using Microsoft.EntityFrameworkCore;
     using SORMS.API.Data;
@@ -39,8 +39,8 @@
             if (room == null)
                 throw new Exception("Phòng không tồn tại");
 
-            if (room.IsOccupied || !room.IsAvailable)
-                throw new Exception("Phòng đã có người ở hoặc không khả dụng");
+            if (room.Status != "Available")
+                throw new Exception("Phòng đã có người ở hoặc đang bảo trì");
 
             // Tạo yêu cầu check-in
             var checkInRequest = new CheckInRecord
@@ -123,8 +123,7 @@
                 record.CheckInTime = DateTime.UtcNow;
                 
                 // Cập nhật trạng thái phòng
-                record.Room.IsOccupied = true;
-                record.Room.IsAvailable = false; // ✨ Đồng bộ IsAvailable
+                record.Room.Status = "Occupied";
                 record.Room.CurrentResident = record.Resident.FullName; // Cập nhật tên cư dân hiện tại
                 
                 // Cập nhật thông tin resident
@@ -184,8 +183,7 @@
                 record.CheckOutTime = DateTime.UtcNow;
                 
                 // Cập nhật trạng thái phòng
-                record.Room.IsOccupied = false;
-                record.Room.IsAvailable = true; // ✨ Đồng bộ IsAvailable
+                record.Room.Status = "Available";
                 record.Room.CurrentResident = null; // Xóa tên cư dân hiện tại
                 
                 // Cập nhật thông tin resident

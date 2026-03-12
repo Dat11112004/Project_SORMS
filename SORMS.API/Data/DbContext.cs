@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SORMS.API.Models;
 
 namespace SORMS.API.Data
@@ -21,6 +21,7 @@ namespace SORMS.API.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<CheckInRecord> CheckInRecords { get; set; }
         public DbSet<Report> Reports { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +39,11 @@ namespace SORMS.API.Data
             // ==========================
             // 🔹 Resident ↔ Billing (1-n)
             // ==========================
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Resident)
+                .WithMany(r => r.Invoices)
+                .HasForeignKey(i => i.ResidentId)
+                .OnDelete(DeleteBehavior.Restrict);
             
             // ==========================
             // 🔹 Resident ↔ Notification (1-n)

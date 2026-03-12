@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -60,5 +60,6 @@ namespace SORMS.API.Models
         public ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public ICollection<CheckInRecord> CheckInRecords { get; set; } = new List<CheckInRecord>();
+        public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     }
 }

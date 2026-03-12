@@ -101,8 +101,8 @@ export interface RoomDto {
   floor: number;
   monthlyRent: number;
   area: number;
-  isOccupied: boolean;
-  isAvailable: boolean;
+  status: string;
+  maintenanceEndDate?: string;
   currentResident?: string;
   description?: string;
   imageUrl?: string;
@@ -244,4 +244,18 @@ export interface ApiResponse<T> {
   success: boolean;
   message?: string;
   data?: T;
+}
+
+// ===== Invoices =====
+export interface InvoiceDto {
+  id: number;
+  residentId: number;
+  roomId?: number;
+  amount: number;
+  description: string;
+  status: string;
+  payOSOrderId?: number;
+  checkoutUrl?: string;
+  createdAt: string;
+  paidAt?: string;
 }

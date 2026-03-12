@@ -34,6 +34,7 @@ import StaffListPage from '../pages/staff/StaffListPage';
 import StaffDetailPage from '../pages/staff/StaffDetailPage';
 import StaffFormPage from '../pages/staff/StaffFormPage';
 import StaffProfilePage from '../pages/staff/StaffProfilePage';
+import InvoicesPage from '../pages/invoices/InvoicesPage';
 import type { ReactNode } from 'react';
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -74,6 +75,7 @@ export default function AppRouter() {
           <Route path="/residents/:id" element={<RoleRoute roles={['Admin','Staff']}><ResidentDetailPage /></RoleRoute>} />
           <Route path="/residents/:id/edit" element={<RoleRoute roles={['Admin','Staff']}><ResidentFormPage /></RoleRoute>} />
           <Route path="/my-profile" element={<RoleRoute roles={['Resident']}><MyProfilePage /></RoleRoute>} />
+          <Route path="/resident/invoices" element={<RoleRoute roles={['Resident']}><InvoicesPage /></RoleRoute>} />
 
           {/* Rooms */}
           <Route path="/rooms" element={<RoomListPage />} />

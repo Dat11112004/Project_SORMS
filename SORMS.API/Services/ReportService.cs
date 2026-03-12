@@ -1,4 +1,4 @@
-﻿namespace SORMS.API.Services
+namespace SORMS.API.Services
 {
     using Microsoft.EntityFrameworkCore;
     using SORMS.API.Data;
@@ -130,7 +130,7 @@
         public async Task<ReportDto> GenerateOccupancyReportAsync()
         {
             var totalRooms = await _context.Rooms.CountAsync();
-            var occupiedRooms = await _context.Rooms.CountAsync(r => r.IsOccupied);
+            var occupiedRooms = await _context.Rooms.CountAsync(r => r.Status == "Occupied");
             var occupancyRate = totalRooms == 0 ? 0 : (double)occupiedRooms / totalRooms * 100;
 
             var report = new Report

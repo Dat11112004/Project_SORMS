@@ -18,7 +18,7 @@ export default function RoomFormPage() {
   const [error, setError] = useState('');
   
   const [form, setForm] = useState<Partial<RoomDto>>({
-    roomNumber: '', type: '', floor: 1, monthlyRent: 0, area: 0, description: '', isActive: true, imageUrl: ''
+    roomNumber: '', type: '', floor: 1, monthlyRent: 0, area: 0, description: '', isActive: true, imageUrl: '', status: 'Available'
   });
 
   useEffect(() => {
@@ -126,6 +126,20 @@ export default function RoomFormPage() {
             <div><label className="form-label">Floor</label><input type="number" className="form-input" value={form.floor || 1} onChange={(e) => setForm({ ...form, floor: Number(e.target.value) })} /></div>
             <div><label className="form-label">Area (m²)</label><input type="number" step="0.1" className="form-input" value={form.area || 0} onChange={(e) => setForm({ ...form, area: Number(e.target.value) })} /></div>
             <div><label className="form-label">Monthly Rent ($)</label><input type="number" step="0.01" className="form-input" value={form.monthlyRent || 0} onChange={(e) => setForm({ ...form, monthlyRent: Number(e.target.value) })} /></div>
+            <div>
+              <label className="form-label">Status *</label>
+              <select className="form-input" value={form.status || 'Available'} onChange={(e) => setForm({ ...form, status: e.target.value })} required>
+                <option value="Available">Available</option>
+                <option value="Occupied">Occupied</option>
+                <option value="Maintenance">Maintenance</option>
+              </select>
+            </div>
+            {form.status === 'Maintenance' && (
+              <div>
+                <label className="form-label">Maintenance End Date</label>
+                <input type="date" className="form-input" value={form.maintenanceEndDate ? new Date(form.maintenanceEndDate).toISOString().split('T')[0] : ''} onChange={(e) => setForm({ ...form, maintenanceEndDate: e.target.value })} />
+              </div>
+            )}
             <div style={{ gridColumn: 'span 2' }}><label className="form-label">Description</label><textarea className="form-input" rows={3} value={form.description || ''} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
           </div>
           <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>

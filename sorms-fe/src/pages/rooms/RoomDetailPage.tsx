@@ -22,6 +22,7 @@ export default function RoomDetailPage() {
     ['Room Number', room.roomNumber], ['Type', room.type || room.roomType],
     ['Floor', `${room.floor}`], ['Area', `${room.area} m²`],
     ['Monthly Rent', `$${room.monthlyRent?.toLocaleString()}`],
+    ['Maintenance End', room.maintenanceEndDate ? new Date(room.maintenanceEndDate).toLocaleDateString() : '—'],
     ['Current Resident', room.currentResident || '—'],
     ['Description', room.description || '—'],
   ];
@@ -48,7 +49,7 @@ export default function RoomDetailPage() {
           )}
           <div style={{ flex: 1, minWidth: 200 }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>Room {room.roomNumber}</h2>
-            <StatusBadge status={room.isOccupied ? 'Inactive' : 'Active'} />
+            <StatusBadge status={room.status} />
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>

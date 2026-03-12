@@ -39,6 +39,12 @@ const navItems: NavItem[] = [
     roles: ['Resident'],
   },
   {
+    label: 'My Invoices',
+    path: '/resident/invoices',
+    icon: <FileText size={20} />,
+    roles: ['Resident'],
+  },
+  {
     label: 'Rooms',
     icon: <DoorOpen size={20} />,
     children: [

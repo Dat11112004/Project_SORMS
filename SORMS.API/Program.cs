@@ -44,6 +44,14 @@ builder.Services.AddScoped<IEmailService, EmailService>();
     builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
     builder.Services.AddScoped<IRoomService, RoomService>();
     builder.Services.AddScoped<IStaffService, StaffService>();
+
+    // PayOS Setup (Temporarily disabled due to missing Nuget Package)
+    // var payOsClientId = builder.Configuration["PayOS:ClientId"] ?? "";
+    // var payOsApiKey = builder.Configuration["PayOS:ApiKey"] ?? "";
+    // var payOsChecksumKey = builder.Configuration["PayOS:ChecksumKey"] ?? "";
+    // Net.payOS.PayOS payOS = new Net.payOS.PayOS(payOsClientId, payOsApiKey, payOsChecksumKey);
+    // builder.Services.AddSingleton(payOS);
+
     builder.Services.AddControllers()
         .AddJsonOptions(opts =>
         {

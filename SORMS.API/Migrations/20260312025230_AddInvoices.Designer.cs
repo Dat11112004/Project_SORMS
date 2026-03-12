@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SORMS.API.Data;
 
@@ -11,9 +12,11 @@ using SORMS.API.Data;
 namespace SORMS.API.Migrations
 {
     [DbContext(typeof(SormsDbContext))]
-    partial class SormsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260312025230_AddInvoices")]
+    partial class AddInvoices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -365,18 +368,16 @@ namespace SORMS.API.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime?>("MaintenanceEndDate")
-                        .HasColumnType("datetime2");
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsOccupied")
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("MonthlyRent")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("RoomNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
