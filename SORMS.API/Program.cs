@@ -70,7 +70,7 @@ var jwtIssuer = configuration["Jwt:Issuer"];
     })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // Set to true in production
+    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment(); // enforce HTTPS in production
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -151,13 +151,16 @@ builder.Services.AddEndpointsApiExplorer();
         });
     });
 
-    // 6. Cấu hình CORS nếu cần
+    // 6. Cấu hình CORS đọc allowed origins từ config
+var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -181,9 +184,8 @@ builder.Services.AddCors(options =>
     // Enable serving static files from wwwroot
     app.UseStaticFiles();
 
-    app.UseCors("AllowAll");
-    app.UseAuthentication();
     app.UseCors("AllowFrontend");
+    app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
 
