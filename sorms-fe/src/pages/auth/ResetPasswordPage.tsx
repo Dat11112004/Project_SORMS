@@ -36,52 +36,43 @@ export default function ResetPasswordPage() {
 
   return (
     <div>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', textAlign: 'center' }}>
+      <h2 className="mb-6 text-center text-xl font-semibold text-[var(--text-primary)]">
         Reset Password
       </h2>
       {error && (
-        <div style={{
-          background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem',
-          fontSize: '0.8125rem', color: '#f87171',
-        }}>{error}</div>
+        <div className="alert-banner alert-error mb-4">{error}</div>
       )}
       {success && (
-        <div style={{
-          background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)',
-          borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem',
-          fontSize: '0.8125rem', color: '#34d399',
-        }}>{success}</div>
+        <div className="alert-banner alert-success mb-4">{success}</div>
       )}
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="mb-4">
           <label className="form-label">Email</label>
           <input type="email" className="form-input" value={email}
             onChange={(e) => setEmail(e.target.value)} required />
         </div>
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="mb-4">
           <label className="form-label">OTP Code</label>
           <input type="text" className="form-input" value={otp}
             onChange={(e) => setOtp(e.target.value)} required />
         </div>
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="mb-4">
           <label className="form-label">New Password</label>
           <input type="password" className="form-input" placeholder="Min 6 characters"
             value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
         </div>
-        <div style={{ marginBottom: '1.5rem' }}>
+        <div className="mb-6">
           <label className="form-label">Confirm Password</label>
           <input type="password" className="form-input"
             value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
         </div>
-        <button type="submit" className="btn btn-primary btn-lg" disabled={loading}
-          style={{ width: '100%' }}>
+        <button type="submit" className="btn btn-primary btn-lg w-full" disabled={loading}>
           <KeyRound size={18} />
           {loading ? 'Resetting...' : 'Reset Password'}
         </button>
       </form>
-      <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.8125rem' }}>
-        <Link to="/login" style={{ color: 'var(--color-primary-light)', textDecoration: 'none' }}>
+      <div className="mt-6 text-center text-sm">
+        <Link to="/login" className="text-[var(--color-primary-light)] no-underline hover:underline">
           Back to Sign In
         </Link>
       </div>

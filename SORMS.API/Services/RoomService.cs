@@ -19,22 +19,7 @@ namespace SORMS.API.Services
         {
             var rooms = await _context.Rooms.ToListAsync();
 
-            return rooms.Select(r => new RoomDto
-            {
-                Id = r.Id,
-                RoomNumber = r.RoomNumber,
-                Type = r.Type,
-                RoomType = r.Type, // Alias
-                Floor = r.Floor,
-                MonthlyRent = r.MonthlyRent,
-                Area = r.Area,
-                Status = r.Status,
-                MaintenanceEndDate = r.MaintenanceEndDate,
-                CurrentResident = r.CurrentResident,
-                Description = r.Description,
-                ImageUrl = r.ImageUrl,
-                IsActive = r.IsActive
-            });
+            return rooms.Select(MapToRoomDto);
         }
 
         public async Task<RoomDto> GetRoomByIdAsync(int id)
@@ -42,22 +27,7 @@ namespace SORMS.API.Services
             var room = await _context.Rooms.FindAsync(id);
             if (room == null) return null;
 
-            return new RoomDto
-            {
-                Id = room.Id,
-                RoomNumber = room.RoomNumber,
-                Type = room.Type,
-                RoomType = room.Type, // Alias
-                Floor = room.Floor,
-                MonthlyRent = room.MonthlyRent,
-                Area = room.Area,
-                Status = room.Status,
-                MaintenanceEndDate = room.MaintenanceEndDate,
-                CurrentResident = room.CurrentResident,
-                Description = room.Description,
-                ImageUrl = room.ImageUrl,
-                IsActive = room.IsActive
-            };
+            return MapToRoomDto(room);
         }
 
         public async Task<RoomDto> CreateRoomAsync(RoomDto roomDto)
@@ -69,6 +39,7 @@ namespace SORMS.API.Services
                 Floor = roomDto.Floor,
                 MonthlyRent = roomDto.MonthlyRent,
                 Area = roomDto.Area,
+                MaxCapacity = roomDto.MaxCapacity <= 0 ? 1 : roomDto.MaxCapacity,
                 Status = roomDto.Status,
                 MaintenanceEndDate = roomDto.MaintenanceEndDate,
                 Description = roomDto.Description,
@@ -104,6 +75,7 @@ namespace SORMS.API.Services
             room.Floor = roomDto.Floor;
             room.MonthlyRent = roomDto.MonthlyRent;
             room.Area = roomDto.Area;
+            room.MaxCapacity = roomDto.MaxCapacity <= 0 ? 1 : roomDto.MaxCapacity;
             room.Status = roomDto.Status;
             room.MaintenanceEndDate = roomDto.MaintenanceEndDate;
             room.Description = roomDto.Description;
@@ -144,28 +116,53 @@ namespace SORMS.API.Services
             return true;
         }
 
-        public async Task<IEnumerable<RoomDto>> GetAvailableRoomsAsync()
+        public async Task<IEnumerable<RoomDto>> GetAvailableRoomsAsync(DateTime? checkInDate = null, DateTime? checkOutDate = null)
         {
+            var requestedCheckIn = NormalizeUtcDate(checkInDate ?? DateTime.UtcNow);
+            var requestedCheckOut = NormalizeUtcDate(checkOutDate ?? requestedCheckIn.AddDays(1));
+
+            if (requestedCheckOut <= requestedCheckIn)
+                throw new ArgumentException("Check-out date must be greater than check-in date.");
+
+            var activeBookingStatuses = new[] { "PendingCheckIn", "CheckedIn", "PendingCheckOut" };
+
             var availableRooms = await _context.Rooms
-                .Where(r => r.Status == "Available" && r.IsActive)
+                .Where(r => r.IsActive)
+                .Where(r => r.Status != "Maintenance" || !r.MaintenanceEndDate.HasValue || r.MaintenanceEndDate.Value.Date <= requestedCheckIn)
+                .Where(r => !_context.CheckInRecords.Any(c =>
+                    c.RoomId == r.Id &&
+                    activeBookingStatuses.Contains(c.Status) &&
+                    requestedCheckIn < (c.ExpectedCheckOutDate) &&
+                    requestedCheckOut > (c.ExpectedCheckInDate)))
                 .ToListAsync();
 
-            return availableRooms.Select(r => new RoomDto
+            return availableRooms.Select(MapToRoomDto);
+        }
+
+        private static DateTime NormalizeUtcDate(DateTime value)
+        {
+            return DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
+        }
+
+        private static RoomDto MapToRoomDto(Room room)
+        {
+            return new RoomDto
             {
-                Id = r.Id,
-                RoomNumber = r.RoomNumber,
-                Type = r.Type,
-                RoomType = r.Type, // Alias
-                Floor = r.Floor,
-                MonthlyRent = r.MonthlyRent,
-                Area = r.Area,
-                Status = r.Status,
-                MaintenanceEndDate = r.MaintenanceEndDate,
-                CurrentResident = r.CurrentResident,
-                Description = r.Description,
-                ImageUrl = r.ImageUrl,
-                IsActive = r.IsActive
-            });
+                Id = room.Id,
+                RoomNumber = room.RoomNumber,
+                Type = room.Type,
+                RoomType = room.Type,
+                Floor = room.Floor,
+                MonthlyRent = room.MonthlyRent,
+                Area = room.Area,
+                MaxCapacity = room.MaxCapacity > 0 ? room.MaxCapacity : 1,
+                Status = room.Status,
+                MaintenanceEndDate = room.MaintenanceEndDate,
+                CurrentResident = room.CurrentResident,
+                Description = room.Description,
+                ImageUrl = room.ImageUrl,
+                IsActive = room.IsActive
+            };
         }
     }
 }

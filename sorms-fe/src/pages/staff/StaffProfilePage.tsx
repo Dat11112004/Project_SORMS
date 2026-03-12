@@ -32,21 +32,44 @@ export default function StaffProfilePage() {
   if (!staff) return <div style={{ padding: '2rem', color: 'var(--text-muted)' }}>Profile not found.</div>;
 
   return (
-    <div style={{ maxWidth: 500 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div className="gradient-info" style={{ width: 48, height: 48, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}><User size={24} /></div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>My Staff Profile</h1>
+    <div className="page-shell mx-auto content-stack p-4 sm:p-6">
+      <div className="hero-banner">
+        <div className="hero-grid">
+          <div>
+            <span className="hero-kicker">Staff workspace</span>
+            <div className="page-header mt-5">
+              <h1 className="page-title">Manage your staff profile</h1>
+              <p className="page-subtitle">
+                Update your direct contact details so service and operations teams always have the right information.
+              </p>
+            </div>
+          </div>
+          <div className="spotlight-card flex flex-col justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="identity-badge gradient-info"><User size={24} /></div>
+              <div>
+                <div className="text-lg font-semibold text-[var(--text-primary)]">{staff.fullName}</div>
+                <div className="mt-1 text-sm text-[var(--text-muted)]">Staff account owner</div>
+              </div>
+            </div>
+            <div className="page-actions">
+              <span className="stat-pill">Operations access</span>
+              <span className="stat-pill">Profile self-service</span>
+            </div>
+          </div>
+        </div>
       </div>
-      {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#f87171' }}>{error}</div>}
-      {success && <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#34d399' }}>{success}</div>}
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
+
+      {error && <div className="alert-banner alert-error">{error}</div>}
+      {success && <div className="alert-banner alert-success">{success}</div>}
+      <div className="glass-card panel">
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gap: '1rem' }}>
+          <div className="content-stack">
             <div><label className="form-label">Full Name</label><input className="form-input" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} /></div>
             <div><label className="form-label">Email</label><input type="email" className="form-input" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
             <div><label className="form-label">Phone</label><input className="form-input" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
           </div>
-          <button type="submit" className="btn btn-primary btn-sm" disabled={saving} style={{ marginTop: '1rem' }}><Save size={16} /> {saving ? 'Saving...' : 'Save'}</button>
+          <button type="submit" className="btn btn-primary btn-sm mt-5" disabled={saving}><Save size={16} /> {saving ? 'Saving...' : 'Save profile'}</button>
         </form>
       </div>
     </div>

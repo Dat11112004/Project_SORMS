@@ -25,6 +25,15 @@ namespace SORMS.API.Models
         [Required]
         public DateTime RequestTime { get; set; } // Thời gian yêu cầu
 
+        [Required]
+        public DateTime ExpectedCheckInDate { get; set; }
+
+        [Required]
+        public DateTime ExpectedCheckOutDate { get; set; }
+
+        [Required]
+        public int NumberOfResidents { get; set; } = 1;
+
         public DateTime? ApprovedTime { get; set; } // Thời gian được phê duyệt
 
         public DateTime? CheckInTime { get; set; } // Thời gian check-in thực tế

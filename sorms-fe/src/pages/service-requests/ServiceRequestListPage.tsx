@@ -5,6 +5,8 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import StatusBadge from '../../components/StatusBadge';
 import Modal from '../../components/Modal';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import NoticeDialog from '../../components/NoticeDialog';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2, Search } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
@@ -17,7 +19,14 @@ export default function ServiceRequestListPage({ myOnly = false, pendingOnly = f
   const { hasRole } = useAuthStore();
   const [reviewModal, setReviewModal] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [deleteRequestId, setDeleteRequestId] = useState<number | null>(null);
   const [reviewForm, setReviewForm] = useState({ status: 'Approved', staffFeedback: '' });
+  const [notice, setNotice] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'warning' | 'info' }>({
+    open: false,
+    title: '',
+    message: '',
+    variant: 'info'
+  });
 
   useEffect(() => { load(); }, [myOnly, pendingOnly]);
 
@@ -41,17 +50,29 @@ export default function ServiceRequestListPage({ myOnly = false, pendingOnly = f
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this request?')) return;
-    try { await serviceRequestApi.delete(id); load(); } catch { alert('Failed.'); }
+  const handleDelete = async () => {
+    if (!deleteRequestId) return;
+    try {
+      await serviceRequestApi.delete(deleteRequestId);
+      await load();
+      setNotice({ open: true, title: 'Request Deleted', message: 'Service request has been deleted.', variant: 'success' });
+    } catch {
+      setNotice({ open: true, title: 'Delete Failed', message: 'Failed to delete request.', variant: 'error' });
+    } finally {
+      setDeleteRequestId(null);
+    }
   };
 
   const handleReview = async () => {
     if (!selectedId) return;
     try {
       await serviceRequestApi.review(selectedId, reviewForm);
-      setReviewModal(false); load();
-    } catch { alert('Failed to review.'); }
+      setReviewModal(false);
+      await load();
+      setNotice({ open: true, title: 'Request Reviewed', message: 'Service request review has been submitted.', variant: 'success' });
+    } catch {
+      setNotice({ open: true, title: 'Review Failed', message: 'Failed to review request.', variant: 'error' });
+    }
   };
 
   const filtered = requests.filter((r) =>
@@ -65,23 +86,29 @@ export default function ServiceRequestListPage({ myOnly = false, pendingOnly = f
   const title = myOnly ? 'My Service Requests' : pendingOnly ? 'Pending Requests' : 'All Service Requests';
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{title}</h1>
+    <div className="page-shell max-w-7xl space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{title}</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">Track and process resident service requests efficiently.</p>
+        </div>
         {hasRole('Resident') && <Link to="/service-requests/create" className="btn btn-primary"><Plus size={18} /> New Request</Link>}
       </div>
+
       {error && (
-        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '1rem', marginBottom: '1.5rem', color: '#f87171' }}>
-          ⚠️ {error}
+        <div className="rounded-xl border border-red-300/60 bg-red-100/70 px-4 py-3 text-sm text-red-700 dark:border-red-700/60 dark:bg-red-900/25 dark:text-red-300">
+          {error}
         </div>
       )}
-      <div className="glass-card" style={{ padding: '1.25rem' }}>
-        <div style={{ marginBottom: '1rem', position: 'relative' }}>
+
+      <div className="glass-card p-5 sm:p-6">
+        <div className="relative mb-4">
           <Search size={16} style={{ position: 'absolute', left: 12, top: 11, color: 'var(--text-muted)' }} />
           <input className="form-input" placeholder="Search..." style={{ paddingLeft: '2.25rem' }} value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+
         {filtered.length === 0 ? <EmptyState message="No requests found" /> : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="overflow-x-auto">
             <table className="data-table">
               <thead><tr><th>Title</th><th>Type</th><th>Priority</th><th>Date</th><th>Status</th>{!myOnly && <th>Resident</th>}<th>Actions</th></tr></thead>
               <tbody>
@@ -94,12 +121,12 @@ export default function ServiceRequestListPage({ myOnly = false, pendingOnly = f
                     <td><StatusBadge status={r.status} /></td>
                     {!myOnly && <td>{r.residentName}</td>}
                     <td>
-                      <div style={{ display: 'flex', gap: '0.25rem' }}>
+                      <div className="flex gap-1">
                         {hasRole('Admin', 'Staff') && r.status === 'Pending' && (
                           <button onClick={() => { setSelectedId(r.id); setReviewModal(true); }} className="btn btn-primary btn-sm">Review</button>
                         )}
                         {myOnly && r.status === 'Pending' && (
-                          <button onClick={() => handleDelete(r.id)} className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }}><Trash2 size={16} /></button>
+                          <button onClick={() => setDeleteRequestId(r.id)} className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }}><Trash2 size={16} /></button>
                         )}
                       </div>
                     </td>
@@ -111,7 +138,7 @@ export default function ServiceRequestListPage({ myOnly = false, pendingOnly = f
         )}
       </div>
       <Modal isOpen={reviewModal} onClose={() => setReviewModal(false)} title="Review Service Request">
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="grid gap-4">
           <div><label className="form-label">Status</label>
             <select className="form-input" value={reviewForm.status} onChange={(e) => setReviewForm({ ...reviewForm, status: e.target.value })}>
               <option>Approved</option><option>InProgress</option><option>Completed</option><option>Rejected</option>
@@ -119,11 +146,30 @@ export default function ServiceRequestListPage({ myOnly = false, pendingOnly = f
           </div>
           <div><label className="form-label">Feedback</label><textarea className="form-input" rows={3} value={reviewForm.staffFeedback} onChange={(e) => setReviewForm({ ...reviewForm, staffFeedback: e.target.value })} /></div>
         </div>
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+        <div className="mt-4 flex justify-end gap-3">
           <button onClick={() => setReviewModal(false)} className="btn btn-secondary">Cancel</button>
           <button onClick={handleReview} className="btn btn-primary">Submit Review</button>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={deleteRequestId !== null}
+        title="Delete Service Request"
+        message="Are you sure you want to delete this service request? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteRequestId(null)}
+      />
+
+      <NoticeDialog
+        isOpen={notice.open}
+        title={notice.title}
+        message={notice.message}
+        variant={notice.variant}
+        onClose={() => setNotice((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 }

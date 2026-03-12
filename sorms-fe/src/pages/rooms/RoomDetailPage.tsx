@@ -21,7 +21,7 @@ export default function RoomDetailPage() {
   const info = [
     ['Room Number', room.roomNumber], ['Type', room.type || room.roomType],
     ['Floor', `${room.floor}`], ['Area', `${room.area} m²`],
-    ['Monthly Rent', `$${room.monthlyRent?.toLocaleString()}`],
+    ['Daily Rate', `$${(room.dailyRate || room.monthlyRent || 0).toLocaleString()}`],
     ['Maintenance End', room.maintenanceEndDate ? new Date(room.maintenanceEndDate).toLocaleDateString() : '—'],
     ['Current Resident', room.currentResident || '—'],
     ['Description', room.description || '—'],

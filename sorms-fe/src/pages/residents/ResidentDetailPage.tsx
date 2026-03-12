@@ -30,28 +30,44 @@ export default function ResidentDetailPage() {
   ];
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <Link to="/residents" className="btn btn-ghost btn-sm"><ArrowLeft size={18} /></Link>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, flex: 1 }}>Resident Detail</h1>
-        <Link to={`/residents/${id}/edit`} className="btn btn-primary btn-sm"><Pencil size={16} /> Edit</Link>
-      </div>
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div className="gradient-primary" style={{
-            width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.5rem', fontWeight: 700, color: '#fff',
-          }}>{resident.fullName?.charAt(0)}</div>
+    <div className="page-shell mx-auto content-stack p-4 sm:p-6">
+      <div className="hero-banner">
+        <div className="hero-grid">
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{resident.fullName}</h2>
-            <StatusBadge status={resident.isActive ? 'Active' : 'Inactive'} />
+            <span className="hero-kicker">Resident profile</span>
+            <div className="page-header mt-5">
+              <h1 className="page-title">Resident details at a glance</h1>
+              <p className="page-subtitle">
+                Review contact information, stay history, and room assignment from a cleaner profile view.
+              </p>
+            </div>
+            <div className="page-actions">
+              <Link to="/residents" className="btn btn-secondary btn-sm"><ArrowLeft size={18} /> Back to residents</Link>
+              <Link to={`/residents/${id}/edit`} className="btn btn-primary btn-sm"><Pencil size={16} /> Edit resident</Link>
+            </div>
+          </div>
+          <div className="spotlight-card flex flex-col justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="identity-badge gradient-primary">{resident.fullName?.charAt(0)}</div>
+              <div>
+                <div className="text-lg font-semibold text-[var(--text-primary)]">{resident.fullName}</div>
+                <div className="mt-2"><StatusBadge status={resident.isActive ? 'Active' : 'Inactive'} /></div>
+              </div>
+            </div>
+            <div className="page-actions">
+              <span className="stat-pill">Room {resident.roomNumber || 'Unassigned'}</span>
+              <span className="stat-pill">Resident account</span>
+            </div>
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+      </div>
+
+      <div className="glass-card panel">
+        <div className="detail-grid">
           {info.map(([label, value]) => (
-            <div key={label}>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{label}</p>
-              <p style={{ fontSize: '0.875rem' }}>{value || '—'}</p>
+            <div key={label} className="detail-item">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-soft)]">{label}</p>
+              <p className="text-sm leading-6">{value || '—'}</p>
             </div>
           ))}
         </div>

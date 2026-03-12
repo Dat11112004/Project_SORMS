@@ -99,8 +99,10 @@ export interface RoomDto {
   type: string;
   roomType: string;
   floor: number;
-  monthlyRent: number;
+  dailyRate: number;
+  monthlyRent?: number;
   area: number;
+  maxCapacity: number;
   status: string;
   maintenanceEndDate?: string;
   currentResident?: string;
@@ -117,11 +119,15 @@ export interface CheckInRecordDto {
   roomId: number;
   roomNumber: string;
   requestTime: string;
+  expectedCheckInDate: string;
+  expectedCheckOutDate: string;
+  numberOfResidents: number;
   approvedTime?: string;
   checkInTime?: string;
   checkOutRequestTime?: string;
   checkOutTime?: string;
   status: string;
+  bookingStatus: string;
   rejectReason?: string;
   approvedBy?: number;
   approvedByName?: string;
@@ -130,9 +136,16 @@ export interface CheckInRecordDto {
 
 export interface CreateCheckInRequest {
   roomId: number;
+  checkInDate: string;
+  checkOutDate: string;
+  numberOfResidents: number;
 }
 
 export interface CreateCheckOutRequest {
+  checkInRecordId: number;
+}
+
+export interface CancelCheckInRequest {
   checkInRecordId: number;
 }
 
@@ -302,7 +315,8 @@ export interface RoomPricingDto {
   id: number;
   roomId: number;
   roomNumber: string;
-  monthlyRent: number;
+  dailyRate: number;
+  monthlyRent?: number;
   electricityRate: number;
   waterRate: number;
   internetFee: number;
@@ -316,7 +330,8 @@ export interface RoomPricingDto {
 }
 
 export interface UpdateRoomPricingRequest {
-  monthlyRent: number;
+  dailyRate: number;
+  monthlyRent?: number;
   electricityRate: number;
   waterRate: number;
   internetFee: number;

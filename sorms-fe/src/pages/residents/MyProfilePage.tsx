@@ -50,43 +50,59 @@ export default function MyProfilePage() {
   if (!profile) return <div style={{ padding: '2rem', color: 'var(--text-muted)' }}>Profile not found. Please contact admin.</div>;
 
   return (
-    <div style={{ maxWidth: 700 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div className="gradient-primary" style={{
-          width: 48, height: 48, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '1.25rem', fontWeight: 700, color: '#fff',
-        }}><User size={24} /></div>
-        <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>My Profile</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{profile.fullName} • Room {profile.roomNumber || 'N/A'}</p>
+    <div className="page-shell mx-auto content-stack p-4 sm:p-6">
+      <div className="hero-banner">
+        <div className="hero-grid">
+          <div>
+            <span className="hero-kicker">Resident account</span>
+            <div className="page-header mt-5">
+              <h1 className="page-title">Manage your resident profile</h1>
+              <p className="page-subtitle">
+                Update your contact details and supporting notes without leaving the resident workspace.
+              </p>
+            </div>
+          </div>
+          <div className="spotlight-card flex flex-col justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="identity-badge gradient-primary"><User size={24} /></div>
+              <div>
+                <div className="text-lg font-semibold text-[var(--text-primary)]">{profile.fullName}</div>
+                <div className="mt-1 text-sm text-[var(--text-muted)]">Room {profile.roomNumber || 'Not assigned yet'}</div>
+              </div>
+            </div>
+            <div className="page-actions">
+              <span className="stat-pill">Resident access</span>
+              <span className="stat-pill">Self-service updates</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#f87171' }}>{error}</div>}
-      {success && <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#34d399' }}>{success}</div>}
+      {error && <div className="alert-banner alert-error">{error}</div>}
+      {success && <div className="alert-banner alert-success">{success}</div>}
 
-      {/* Account Settings */}
-      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Account Settings</h3>
+      <div className="glass-card panel">
+        <h3 className="text-base font-semibold text-[var(--text-primary)]">Account settings</h3>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">These details control how the system contacts you and recognizes your account.</p>
         <form onSubmit={handleUpdateAccount}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2 mt-5">
             <div><label className="form-label">Email</label><input type="email" className="form-input" value={accountForm.email} onChange={(e) => setAccountForm({ ...accountForm, email: e.target.value })} /></div>
             <div><label className="form-label">Phone</label><input className="form-input" value={accountForm.phone} onChange={(e) => setAccountForm({ ...accountForm, phone: e.target.value })} /></div>
           </div>
-          <button type="submit" className="btn btn-primary btn-sm" disabled={saving} style={{ marginTop: '1rem' }}><Save size={16} /> Save Account</button>
+          <button type="submit" className="btn btn-primary btn-sm mt-5" disabled={saving}><Save size={16} /> Save account</button>
         </form>
       </div>
 
-      {/* Profile Info */}
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Profile Information</h3>
+      <div className="glass-card panel">
+        <h3 className="text-base font-semibold text-[var(--text-primary)]">Profile information</h3>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">Keep your address, emergency contact, and notes current for smoother support and check-in coordination.</p>
         <form onSubmit={handleUpdateProfile}>
-          <div style={{ display: 'grid', gap: '1rem' }}>
+          <div className="content-stack mt-5">
             <div><label className="form-label">Address</label><input className="form-input" value={profileForm.address} onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })} /></div>
             <div><label className="form-label">Emergency Contact</label><input className="form-input" value={profileForm.emergencyContact} onChange={(e) => setProfileForm({ ...profileForm, emergencyContact: e.target.value })} /></div>
             <div><label className="form-label">Notes</label><textarea className="form-input" rows={3} value={profileForm.notes} onChange={(e) => setProfileForm({ ...profileForm, notes: e.target.value })} /></div>
           </div>
-          <button type="submit" className="btn btn-primary btn-sm" disabled={saving} style={{ marginTop: '1rem' }}><Save size={16} /> Save Profile</button>
+          <button type="submit" className="btn btn-primary btn-sm mt-5" disabled={saving}><Save size={16} /> Save profile</button>
         </form>
       </div>
     </div>

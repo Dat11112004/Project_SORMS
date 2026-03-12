@@ -17,6 +17,6 @@ export const roomApi = {
   delete: (id: number) =>
     client.delete(`/Room/${id}`),
 
-  getAvailable: () =>
-    client.get<RoomDto[]>('/Room/available'),
+  getAvailable: (params?: { checkIn?: string; checkOut?: string }) =>
+    client.get<RoomDto[]>('/Room/available', { params }),
 };

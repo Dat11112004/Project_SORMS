@@ -18,29 +18,77 @@ namespace SORMS.API.Services
         }
 
         // Resident tạo yêu cầu check-in vào phòng
-        public async Task<CheckInRecordDto> CreateCheckInRequestAsync(int residentId, int roomId)
+        public async Task<CheckInRecordDto> CreateCheckInRequestAsync(int residentId, int roomId, DateTime expectedCheckInDate, DateTime expectedCheckOutDate, int numberOfResidents)
         {
+            var requestedCheckIn = NormalizeUtcDate(expectedCheckInDate);
+            var requestedCheckOut = NormalizeUtcDate(expectedCheckOutDate);
+            var numberOfNights = (requestedCheckOut - requestedCheckIn).Days;
+            
+            Console.WriteLine($"[CheckInService] CreateCheckInRequest DEBUG:");
+            Console.WriteLine($"  Input expectedCheckInDate: {expectedCheckInDate:yyyy-MM-dd HH:mm:ss} (Kind={expectedCheckInDate.Kind})");
+            Console.WriteLine($"  Input expectedCheckOutDate: {expectedCheckOutDate:yyyy-MM-dd HH:mm:ss} (Kind={expectedCheckOutDate.Kind})");
+            Console.WriteLine($"  After Normalize requestedCheckIn: {requestedCheckIn:yyyy-MM-dd HH:mm:ss}");
+            Console.WriteLine($"  After Normalize requestedCheckOut: {requestedCheckOut:yyyy-MM-dd HH:mm:ss}");
+            Console.WriteLine($"  Difference in days: {numberOfNights}");
+
+            if (requestedCheckOut <= requestedCheckIn)
+                throw new Exception("Check-out phải lớn hơn Check-in.");
+
+            if (numberOfResidents <= 0)
+                throw new Exception("Số lượng người ở phải lớn hơn 0.");
+
             // Kiểm tra resident có tồn tại không
             var resident = await _context.Residents.FindAsync(residentId);
             if (resident == null)
                 throw new Exception("Resident không tồn tại");
 
-            // Kiểm tra resident đã có yêu cầu pending hoặc đang ở phòng chưa
-            var existingRecord = await _context.CheckInRecords
-                .Where(r => r.ResidentId == residentId && 
-                       (r.Status == "PendingCheckIn" || r.Status == "CheckedIn"))
-                .FirstOrDefaultAsync();
+            var activeBookingStatuses = new[] { "PendingCheckIn", "CheckedIn", "PendingCheckOut" };
 
-            if (existingRecord != null)
-                throw new Exception("Bạn đã có yêu cầu đang chờ hoặc đang ở trong phòng");
+            // Kiểm tra resident có booking trùng lịch hay không
+            var residentOverlap = await _context.CheckInRecords
+                .AnyAsync(r =>
+                    r.ResidentId == residentId &&
+                    activeBookingStatuses.Contains(r.Status) &&
+                    requestedCheckIn < r.ExpectedCheckOutDate &&
+                    requestedCheckOut > r.ExpectedCheckInDate);
 
-            // Kiểm tra phòng có tồn tại và còn trống không
+            if (residentOverlap)
+                throw new Exception("Bạn đã có booking trùng trong khoảng thời gian này.");
+
+            // Kiểm tra phòng có tồn tại
             var room = await _context.Rooms.FindAsync(roomId);
             if (room == null)
                 throw new Exception("Phòng không tồn tại");
 
-            if (room.Status != "Available")
-                throw new Exception("Phòng đã có người ở hoặc đang bảo trì");
+            if (!room.IsActive)
+                throw new Exception("Phòng này hiện không hoạt động.");
+
+            if (room.Status == "Maintenance" && (!room.MaintenanceEndDate.HasValue || room.MaintenanceEndDate.Value.Date > requestedCheckIn))
+                throw new Exception("Phòng đang bảo trì trong khoảng thời gian bạn chọn.");
+
+            var effectiveMaxCapacity = room.MaxCapacity > 0 ? room.MaxCapacity : 1;
+            if (numberOfResidents > effectiveMaxCapacity)
+                throw new Exception($"Số lượng người ở không được vượt quá sức chứa tối đa của phòng ({effectiveMaxCapacity}).");
+
+            var pricing = await _context.RoomPricingConfigs
+                .Where(p => p.RoomId == roomId && p.IsActive)
+                .OrderByDescending(p => p.EffectiveFrom)
+                .FirstOrDefaultAsync();
+
+            var dailyRate = ResolveDailyRate(room, pricing);
+            if (dailyRate <= 0)
+                throw new Exception("Phòng này chưa được cấu hình giá thuê theo ngày.");
+
+            // Kiểm tra phòng có bị trùng lịch đặt không
+            var roomOverlap = await _context.CheckInRecords
+                .AnyAsync(r =>
+                    r.RoomId == roomId &&
+                    activeBookingStatuses.Contains(r.Status) &&
+                    requestedCheckIn < r.ExpectedCheckOutDate &&
+                    requestedCheckOut > r.ExpectedCheckInDate);
+
+            if (roomOverlap)
+                throw new Exception("Phòng này đã có người đặt trong khoảng thời gian bạn chọn.");
 
             // Tạo yêu cầu check-in
             var checkInRequest = new CheckInRecord
@@ -48,43 +96,48 @@ namespace SORMS.API.Services
                 ResidentId = residentId,
                 RoomId = roomId,
                 RequestTime = DateTime.UtcNow,
+                ExpectedCheckInDate = requestedCheckIn,
+                ExpectedCheckOutDate = requestedCheckOut,
+                NumberOfResidents = numberOfResidents,
                 Status = "PendingCheckIn",
                 RequestType = "CheckIn"
             };
 
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
             _context.CheckInRecords.Add(checkInRequest);
             await _context.SaveChangesAsync();
 
-            // ✅ TỰ ĐỘNG TẠO HÓA ĐƠN KHI CHECK-IN
-            try
+            var openInvoices = await _context.Invoices
+                .Where(i => i.ResidentId == residentId &&
+                            i.RoomId == roomId &&
+                            (i.Status == "Pending" || i.Status == "Created"))
+                .ToListAsync();
+
+            foreach (var openInvoice in openInvoices)
             {
-                var pricing = await _context.RoomPricingConfigs
-                    .Where(p => p.RoomId == roomId && p.IsActive)
-                    .OrderByDescending(p => p.EffectiveFrom)
-                    .FirstOrDefaultAsync();
-
-                decimal amount = room.MonthlyRent > 0 ? room.MonthlyRent : (pricing?.MonthlyRent ?? 0);
-
-                var invoice = new Invoice
-                {
-                    ResidentId = residentId,
-                    RoomId = roomId,
-                    Amount = amount,
-                    Status = "Pending",
-                    Description = $"Check-in fee for room {room.RoomNumber}",
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                _context.Invoices.Add(invoice);
-                await _context.SaveChangesAsync();
-
-                Console.WriteLine($"✅ Auto-created Invoice #{invoice.Id} for Resident {residentId}, Room {roomId}, Amount: {amount}");
+                openInvoice.Status = "Cancelled";
             }
-            catch (Exception ex)
+
+            var invoice = new Invoice
             {
-                Console.WriteLine($"⚠️ Warning: Could not auto-create invoice for check-in: {ex.Message}");
-                // Không lỗi ra, tiếp tục xử lý check-in
-            }
+                ResidentId = residentId,
+                RoomId = roomId,
+                Amount = dailyRate * numberOfNights,
+                Status = "Pending",
+                Description = $"Booking fee for room {room.RoomNumber}: {numberOfNights} night(s) x {dailyRate:N0}/day",
+                CreatedAt = DateTime.UtcNow
+            };
+            
+            Console.WriteLine($"[CheckInService] Invoice created:");
+            Console.WriteLine($"  DailyRate: {dailyRate}");
+            Console.WriteLine($"  NumberOfNights: {numberOfNights}");
+            Console.WriteLine($"  Amount: {invoice.Amount} (= {dailyRate} x {numberOfNights})");
+            Console.WriteLine($"  Description: {invoice.Description}");
+
+            _context.Invoices.Add(invoice);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             // Gửi thông báo cho tất cả Staff và Admin
             await SendNotificationToStaffAndAdminAsync(
@@ -93,6 +146,21 @@ namespace SORMS.API.Services
             );
 
             return await MapToDto(checkInRequest);
+        }
+
+        private static DateTime NormalizeUtcDate(DateTime value)
+        {
+            return DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
+        }
+
+        private static decimal ResolveDailyRate(Room room, RoomPricingConfig? pricing)
+        {
+            if (pricing?.MonthlyRent > 0)
+            {
+                return pricing.MonthlyRent;
+            }
+
+            return room.MonthlyRent;
         }
 
         // Resident tạo yêu cầu check-out khỏi phòng
@@ -128,6 +196,36 @@ namespace SORMS.API.Services
             );
 
             return await MapToDto(record);
+        }
+
+        public async Task<bool> CancelPendingCheckInRequestAsync(int residentId, int checkInRecordId)
+        {
+            var record = await _context.CheckInRecords
+                .Include(r => r.Room)
+                .Include(r => r.Resident)
+                .FirstOrDefaultAsync(r => r.Id == checkInRecordId && r.ResidentId == residentId);
+
+            if (record == null)
+                throw new Exception("Không tìm thấy yêu cầu check-in để hủy.");
+
+            if (record.Status != "PendingCheckIn")
+                throw new Exception("Chỉ có thể hủy yêu cầu check-in đang chờ phê duyệt.");
+
+            record.Status = "Cancelled";
+            record.RejectReason = "Customer cancelled booking request.";
+
+            var pendingInvoice = await _context.Invoices
+                .Where(i => i.ResidentId == residentId && i.RoomId == record.RoomId && (i.Status == "Pending" || i.Status == "Created"))
+                .OrderByDescending(i => i.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (pendingInvoice != null)
+            {
+                pendingInvoice.Status = "Cancelled";
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         // Staff/Admin phê duyệt yêu cầu check-in
@@ -186,6 +284,18 @@ namespace SORMS.API.Services
                 // Từ chối
                 record.Status = "Rejected";
                 record.RejectReason = rejectReason ?? "Không đủ điều kiện";
+
+                var pendingInvoice = await _context.Invoices
+                    .Where(i => i.ResidentId == record.ResidentId &&
+                                i.RoomId == record.RoomId &&
+                                (i.Status == "Pending" || i.Status == "Created"))
+                    .OrderByDescending(i => i.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                if (pendingInvoice != null)
+                {
+                    pendingInvoice.Status = "Cancelled";
+                }
 
                 // Gửi thông báo cho resident
                 await _notificationService.CreateNotificationAsync(new NotificationDto
@@ -394,15 +504,33 @@ namespace SORMS.API.Services
                 RoomId = record.RoomId,
                 RoomNumber = record.Room?.RoomNumber ?? "N/A",
                 RequestTime = record.RequestTime,
+                ExpectedCheckInDate = record.ExpectedCheckInDate,
+                ExpectedCheckOutDate = record.ExpectedCheckOutDate,
+                NumberOfResidents = record.NumberOfResidents,
                 ApprovedTime = record.ApprovedTime,
                 CheckInTime = record.CheckInTime,
                 CheckOutRequestTime = record.CheckOutRequestTime,
                 CheckOutTime = record.CheckOutTime,
                 Status = record.Status,
+                BookingStatus = MapToBusinessBookingStatus(record.Status),
                 RejectReason = record.RejectReason,
                 ApprovedBy = record.ApprovedBy,
                 ApprovedByName = approvedByName,
                 RequestType = record.RequestType
+            };
+        }
+
+        private static string MapToBusinessBookingStatus(string workflowStatus)
+        {
+            return workflowStatus switch
+            {
+                "PendingCheckIn" => "Pending",
+                "PendingCheckOut" => "Pending",
+                "CheckedIn" => "Checked-in",
+                "CheckedOut" => "Checked-out",
+                "Rejected" => "Cancelled",
+                "Cancelled" => "Cancelled",
+                _ => "Pending"
             };
         }
 

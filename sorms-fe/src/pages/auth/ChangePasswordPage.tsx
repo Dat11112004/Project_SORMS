@@ -27,35 +27,31 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div style={{ maxWidth: 500 }}>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Change Password</h1>
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
+    <div className="page-shell max-w-2xl space-y-5">
+      <div className="page-header">
+        <h1 className="page-title">Change Password</h1>
+        <p className="page-subtitle">Keep your account secure by updating your password regularly.</p>
+      </div>
+
+      <div className="glass-card p-6">
         {error && (
-          <div style={{
-            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-            borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem',
-            fontSize: '0.8125rem', color: '#f87171',
-          }}>{error}</div>
+          <div className="alert-banner alert-error mb-4">{error}</div>
         )}
         {success && (
-          <div style={{
-            background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)',
-            borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem',
-            fontSize: '0.8125rem', color: '#34d399',
-          }}>{success}</div>
+          <div className="alert-banner alert-success mb-4">{success}</div>
         )}
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
+          <div className="mb-4">
             <label className="form-label">Current Password</label>
             <input type="password" className="form-input"
               value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
           </div>
-          <div style={{ marginBottom: '1rem' }}>
+          <div className="mb-4">
             <label className="form-label">New Password</label>
             <input type="password" className="form-input" placeholder="Min 6 characters"
               value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
           </div>
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div className="mb-6">
             <label className="form-label">Confirm New Password</label>
             <input type="password" className="form-input"
               value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />

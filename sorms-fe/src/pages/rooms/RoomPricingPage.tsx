@@ -3,6 +3,8 @@ import { paymentApi } from '../../api/payment';
 import type { RoomPricingDto } from '../../types';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Modal from '../../components/Modal';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import NoticeDialog from '../../components/NoticeDialog';
 import { Settings, Plus, Edit2, Trash2, DollarSign } from 'lucide-react';
 
 export default function RoomPricingPage() {
@@ -11,11 +13,18 @@ export default function RoomPricingPage() {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [deletePricingId, setDeletePricingId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'warning' | 'info' }>({
+    open: false,
+    title: '',
+    message: '',
+    variant: 'info'
+  });
 
   const [formData, setFormData] = useState({
     roomId: '',
-    monthlyRent: '',
+    dailyRate: '',
     electricityRate: '',
     waterRate: '',
     internetFee: '',
@@ -46,7 +55,7 @@ export default function RoomPricingPage() {
       setEditingId(pricing.id);
       setFormData({
         roomId: pricing.roomId.toString(),
-        monthlyRent: pricing.monthlyRent.toString(),
+        dailyRate: (pricing.dailyRate || pricing.monthlyRent || 0).toString(),
         electricityRate: pricing.electricityRate.toString(),
         waterRate: pricing.waterRate.toString(),
         internetFee: pricing.internetFee.toString(),
@@ -63,7 +72,7 @@ export default function RoomPricingPage() {
     setEditingId(null);
     setFormData({
       roomId: '',
-      monthlyRent: '',
+      dailyRate: '',
       electricityRate: '',
       waterRate: '',
       internetFee: '',
@@ -74,8 +83,8 @@ export default function RoomPricingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.roomId || !formData.monthlyRent) {
-      alert('Please fill in required fields');
+    if (!formData.roomId || !formData.dailyRate) {
+      setNotice({ open: true, title: 'Validation Error', message: 'Please fill in required fields.', variant: 'warning' });
       return;
     }
 
@@ -83,7 +92,7 @@ export default function RoomPricingPage() {
       setSubmitting(true);
       const data = {
         roomId: parseInt(formData.roomId),
-        monthlyRent: parseFloat(formData.monthlyRent),
+        dailyRate: parseFloat(formData.dailyRate),
         electricityRate: parseFloat(formData.electricityRate) || 0,
         waterRate: parseFloat(formData.waterRate) || 0,
         internetFee: parseFloat(formData.internetFee) || 0,
@@ -95,34 +104,45 @@ export default function RoomPricingPage() {
         const res = await paymentApi.updateRoomPricing(parseInt(formData.roomId), data);
         if (res.success && res.data) {
           setPricings(pricings.map(p => p.id === editingId ? res.data! : p));
-          alert('Pricing updated successfully');
+          setNotice({ open: true, title: 'Pricing Updated', message: 'Pricing updated successfully.', variant: 'success' });
         }
       } else {
         const res = await paymentApi.createRoomPricing(parseInt(formData.roomId), data);
         if (res.success && res.data) {
           setPricings([res.data, ...pricings]);
-          alert('Pricing created successfully');
+          setNotice({ open: true, title: 'Pricing Created', message: 'Pricing created successfully.', variant: 'success' });
         }
       }
 
       setShowModal(false);
       resetForm();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to save pricing');
+      setNotice({
+        open: true,
+        title: 'Save Failed',
+        message: err instanceof Error ? err.message : 'Failed to save pricing',
+        variant: 'error'
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this pricing?')) return;
-
+  const handleDelete = async () => {
+    if (!deletePricingId) return;
     try {
       // Note: Delete endpoint may need to be added to backend
-      setPricings(pricings.filter(p => p.id !== id));
-      alert('Pricing deleted successfully');
+      setPricings(pricings.filter(p => p.id !== deletePricingId));
+      setNotice({ open: true, title: 'Pricing Deleted', message: 'Pricing deleted successfully.', variant: 'success' });
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to delete pricing');
+      setNotice({
+        open: true,
+        title: 'Delete Failed',
+        message: err instanceof Error ? err.message : 'Failed to delete pricing',
+        variant: 'error'
+      });
+    } finally {
+      setDeletePricingId(null);
     }
   };
 
@@ -193,13 +213,13 @@ export default function RoomPricingPage() {
 
               {/* Card Body */}
               <div className="px-6 py-4 space-y-3">
-                {/* Monthly Rent */}
+                {/* Daily Rate */}
                 <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Monthly Rent
+                    Daily Rate
                   </span>
                   <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pricing.monthlyRent)}
+                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pricing.dailyRate || pricing.monthlyRent || 0)}
                   </span>
                 </div>
 
@@ -233,7 +253,7 @@ export default function RoomPricingPage() {
 
                 {/* Total Estimated Cost */}
                 <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-800">
-                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">Estimated Monthly Total</p>
+                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">Estimated Total</p>
                   <p className="text-xl font-bold text-purple-700 dark:text-purple-300">
                     {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pricing.totalEstimatedCost)}
                   </p>
@@ -250,7 +270,7 @@ export default function RoomPricingPage() {
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(pricing.id)}
+                  onClick={() => setDeletePricingId(pricing.id)}
                   className="inline-flex items-center gap-2 px-3 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -288,14 +308,14 @@ export default function RoomPricingPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-              Monthly Rent (VND) <span className="text-red-500">*</span>
+              Daily Rate (VND) <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
               step="0.01"
               required
-              value={formData.monthlyRent}
-              onChange={(e) => setFormData({ ...formData, monthlyRent: e.target.value })}
+              value={formData.dailyRate}
+              onChange={(e) => setFormData({ ...formData, dailyRate: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
@@ -387,6 +407,25 @@ export default function RoomPricingPage() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={deletePricingId !== null}
+        title="Delete Pricing"
+        message="Are you sure you want to delete this pricing configuration?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setDeletePricingId(null)}
+      />
+
+      <NoticeDialog
+        isOpen={notice.open}
+        title={notice.title}
+        message={notice.message}
+        variant={notice.variant}
+        onClose={() => setNotice((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 }

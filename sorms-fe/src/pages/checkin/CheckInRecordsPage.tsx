@@ -23,26 +23,32 @@ export default function CheckInRecordsPage() {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>All Check-In Records</h1>
-      <div className="glass-card" style={{ padding: '1.25rem' }}>
-        <div style={{ marginBottom: '1rem', position: 'relative' }}>
-          <Search size={16} style={{ position: 'absolute', left: 12, top: 11, color: 'var(--text-muted)' }} />
-          <input className="form-input" placeholder="Search..." style={{ paddingLeft: '2.25rem' }} value={search} onChange={(e) => setSearch(e.target.value)} />
+    <div className="page-shell max-w-7xl space-y-5">
+      <div className="page-header">
+        <h1 className="page-title">All Check-In Records</h1>
+        <p className="page-subtitle">Track booking windows and lifecycle status across all records.</p>
+      </div>
+
+      <div className="glass-card panel">
+        <div className="search-shell">
+          <Search size={16} className="search-icon" />
+          <input className="form-input search-input" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+
         {filtered.length === 0 ? <EmptyState message="No records found" /> : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="overflow-x-auto">
             <table className="data-table">
-              <thead><tr><th>Resident</th><th>Room</th><th>Request</th><th>Check-In</th><th>Check-Out</th><th>Status</th><th>Approved By</th></tr></thead>
+              <thead><tr><th>Resident</th><th>Room</th><th>Booking Window</th><th>Request</th><th>Check-In</th><th>Check-Out</th><th>Booking Status</th><th>Approved By</th></tr></thead>
               <tbody>
                 {filtered.map((r) => (
                   <tr key={r.id}>
-                    <td style={{ fontWeight: 500 }}>{r.residentName}</td>
+                    <td className="font-medium">{r.residentName}</td>
                     <td>{r.roomNumber}</td>
-                    <td style={{ fontSize: '0.8125rem' }}>{new Date(r.requestTime).toLocaleString()}</td>
-                    <td style={{ fontSize: '0.8125rem' }}>{r.checkInTime ? new Date(r.checkInTime).toLocaleString() : '—'}</td>
-                    <td style={{ fontSize: '0.8125rem' }}>{r.checkOutTime ? new Date(r.checkOutTime).toLocaleString() : '—'}</td>
-                    <td><StatusBadge status={r.status} /></td>
+                    <td className="text-xs">{new Date(r.expectedCheckInDate).toLocaleDateString()} - {new Date(r.expectedCheckOutDate).toLocaleDateString()}</td>
+                    <td className="text-xs">{new Date(r.requestTime).toLocaleString()}</td>
+                    <td className="text-xs">{r.checkInTime ? new Date(r.checkInTime).toLocaleString() : '—'}</td>
+                    <td className="text-xs">{r.checkOutTime ? new Date(r.checkOutTime).toLocaleString() : '—'}</td>
+                    <td><StatusBadge status={r.bookingStatus || r.status} /></td>
                     <td>{r.approvedByName || '—'}</td>
                   </tr>
                 ))}
