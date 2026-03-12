@@ -37,7 +37,7 @@ export default function RoomDetailPage() {
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
           {room.imageUrl ? (
             <img 
-              src={`http://localhost:5183${room.imageUrl}`} 
+              src={`${import.meta.env.VITE_API_URL || ''}${room.imageUrl}`} 
               alt={`Room ${room.roomNumber}`}
               style={{ width: 200, height: 150, objectFit: 'cover', borderRadius: '0.75rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
             />

@@ -56,7 +56,7 @@ export default function RoomListPage({ availableOnly = false }: { availableOnly?
                     <td>
                       {r.imageUrl ? (
                         <img 
-                          src={`http://localhost:5183${r.imageUrl}`} 
+                          src={`${import.meta.env.VITE_API_URL || ''}${r.imageUrl}`} 
                           alt={`Room ${r.roomNumber}`}
                           style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: '0.5rem' }}
                         />

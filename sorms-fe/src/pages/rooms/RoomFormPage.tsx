@@ -87,7 +87,7 @@ export default function RoomFormPage() {
               {form.imageUrl ? (
                 <div style={{ position: 'relative', width: '100%', height: '200px' }}>
                   <img 
-                    src={`http://localhost:5183${form.imageUrl}`} 
+                    src={`${import.meta.env.VITE_API_URL || ''}${form.imageUrl}`} 
                     alt="Room Preview" 
                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '0.25rem' }}
                   />
