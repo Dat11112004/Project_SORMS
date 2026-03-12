@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SORMS.API.DTOs;
 using SORMS.API.Interfaces;
@@ -88,9 +88,9 @@ namespace SORMS.API.Controllers
         /// </summary>
         [HttpGet("available")]
         [Authorize(Roles = "Admin,Staff,Resident")]
-        public async Task<IActionResult> GetAvailableRooms()
+        public async Task<IActionResult> GetAvailableRooms([FromQuery] DateTime? checkInDate, [FromQuery] DateTime? checkOutDate)
         {
-            var rooms = await _roomService.GetAvailableRoomsAsync();
+            var rooms = await _roomService.GetAvailableRoomsAsync(checkInDate, checkOutDate);
             return Ok(rooms);
         }
     }

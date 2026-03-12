@@ -118,6 +118,7 @@ export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'check
                   <th>Resident</th>
                   <th>Room</th>
                   <th>Request Time</th>
+                  <th>Expected Dates</th>
                   <th>Status</th>
                   {type === 'checkin' && <th>Payment</th>}
                   <th>Actions</th>
@@ -132,6 +133,10 @@ export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'check
                       <td style={{ fontWeight: 500 }}>{r.residentName}</td>
                       <td>{r.roomNumber}</td>
                       <td>{new Date(r.requestTime).toLocaleString()}</td>
+                      <td style={{ fontSize: '0.8125rem' }}>
+                        {r.expectedCheckInDate ? new Date(r.expectedCheckInDate).toLocaleDateString() : '—'} <br/>
+                        to {r.expectedCheckOutDate ? new Date(r.expectedCheckOutDate).toLocaleDateString() : '—'}
+                      </td>
                       <td><StatusBadge status={r.status} /></td>
                       {type === 'checkin' && (
                         <td>

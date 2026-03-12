@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SORMS.API.DTOs;
 using SORMS.API.Interfaces;
@@ -41,8 +41,8 @@ namespace SORMS.API.Controllers
                     return BadRequest(new { success = false, message = "Không tìm thấy thông tin resident. Vui lòng logout và login lại." });
                 }
 
-                Console.WriteLine($"[CheckIn API] Creating check-in request for ResidentId={residentId}, RoomId={request.RoomId}");
-                var result = await _checkInService.CreateCheckInRequestAsync(residentId, request.RoomId);
+                Console.WriteLine($"[CheckIn API] Creating check-in request for ResidentId={residentId}, RoomId={request.RoomId}, CheckIn={request.ExpectedCheckInDate}, CheckOut={request.ExpectedCheckOutDate}, Guests={request.NumberOfResidents}");
+                var result = await _checkInService.CreateCheckInRequestAsync(residentId, request.RoomId, request.ExpectedCheckInDate, request.ExpectedCheckOutDate, request.NumberOfResidents);
                 return Ok(new { 
                     success = true, 
                     message = "Yêu cầu check-in đã được gửi. Vui lòng chờ Staff/Admin phê duyệt.", 
