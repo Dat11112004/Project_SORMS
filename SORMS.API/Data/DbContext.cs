@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SORMS.API.Models;
 
 namespace SORMS.API.Data
@@ -15,12 +15,14 @@ namespace SORMS.API.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Room> Rooms { get; set; }
+        public DbSet<RoomPricingConfig> RoomPricingConfigs { get; set; }
         public DbSet<ServiceRequest> ServiceRequests { get; set; }
         public DbSet<Staff> Staffs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<CheckInRecord> CheckInRecords { get; set; }
         public DbSet<Report> Reports { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +40,29 @@ namespace SORMS.API.Data
             // ==========================
             // 🔹 Resident ↔ Billing (1-n)
             // ==========================
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Resident)
+                .WithMany(r => r.Invoices)
+                .HasForeignKey(i => i.ResidentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ==========================
+            // 🔹 Room ↔ RoomPricingConfig (1-n)
+            // ==========================
+            modelBuilder.Entity<RoomPricingConfig>()
+                .HasOne(p => p.Room)
+                .WithMany()
+                .HasForeignKey(p => p.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ==========================
+            // 🔹 Staff ↔ RoomPricingConfig (1-n)
+            // ==========================
+            modelBuilder.Entity<RoomPricingConfig>()
+                .HasOne(p => p.UpdatedByStaff)
+                .WithMany()
+                .HasForeignKey(p => p.UpdatedByStaffId)
+                .OnDelete(DeleteBehavior.SetNull);
             
             // ==========================
             // 🔹 Resident ↔ Notification (1-n)

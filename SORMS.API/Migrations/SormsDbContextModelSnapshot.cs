@@ -77,6 +77,55 @@ namespace SORMS.API.Migrations
                     b.ToTable("CheckInRecords");
                 });
 
+            modelBuilder.Entity("SORMS.API.Models.Invoice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CheckoutUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("PayOSOrderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ResidentId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("RoomId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ResidentId");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("Invoices");
+                });
+
             modelBuilder.Entity("SORMS.API.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -339,6 +388,63 @@ namespace SORMS.API.Migrations
                     b.ToTable("Rooms");
                 });
 
+            modelBuilder.Entity("SORMS.API.Models.RoomPricingConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EffectiveFrom")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("EffectiveTo")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("ElectricityRate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("InternetFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("MaintenanceFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MonthlyRent")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedByStaffId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("WaterRate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.HasIndex("UpdatedByStaffId");
+
+                    b.ToTable("RoomPricingConfigs");
+                });
+
             modelBuilder.Entity("SORMS.API.Models.ServiceRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -500,6 +606,23 @@ namespace SORMS.API.Migrations
                     b.Navigation("Room");
                 });
 
+            modelBuilder.Entity("SORMS.API.Models.Invoice", b =>
+                {
+                    b.HasOne("SORMS.API.Models.Resident", "Resident")
+                        .WithMany("Invoices")
+                        .HasForeignKey("ResidentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SORMS.API.Models.Room", "Room")
+                        .WithMany("Invoices")
+                        .HasForeignKey("RoomId");
+
+                    b.Navigation("Resident");
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("SORMS.API.Models.Notification", b =>
                 {
                     b.HasOne("SORMS.API.Models.Resident", "Resident")
@@ -532,6 +655,24 @@ namespace SORMS.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SORMS.API.Models.RoomPricingConfig", b =>
+                {
+                    b.HasOne("SORMS.API.Models.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SORMS.API.Models.Staff", "UpdatedByStaff")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByStaffId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Room");
+
+                    b.Navigation("UpdatedByStaff");
+                });
+
             modelBuilder.Entity("SORMS.API.Models.ServiceRequest", b =>
                 {
                     b.HasOne("SORMS.API.Models.Resident", "Resident")
@@ -562,6 +703,8 @@ namespace SORMS.API.Migrations
                 {
                     b.Navigation("CheckInRecords");
 
+                    b.Navigation("Invoices");
+
                     b.Navigation("Notifications");
 
                     b.Navigation("ServiceRequests");
@@ -575,6 +718,8 @@ namespace SORMS.API.Migrations
             modelBuilder.Entity("SORMS.API.Models.Room", b =>
                 {
                     b.Navigation("CheckInRecords");
+
+                    b.Navigation("Invoices");
 
                     b.Navigation("Residents");
                 });

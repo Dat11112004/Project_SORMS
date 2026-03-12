@@ -1,4 +1,4 @@
-﻿namespace SORMS.API.Services
+namespace SORMS.API.Services
 {
     using Microsoft.EntityFrameworkCore;
     using SORMS.API.Data;
@@ -39,8 +39,8 @@
             if (room == null)
                 throw new Exception("Phòng không tồn tại");
 
-            if (room.IsOccupied || !room.IsAvailable)
-                throw new Exception("Phòng đã có người ở hoặc không khả dụng");
+            if (room.Status != "Available")
+                throw new Exception("Phòng đã có người ở hoặc đang bảo trì");
 
             // Tạo yêu cầu check-in
             var checkInRequest = new CheckInRecord
@@ -54,6 +54,37 @@
 
             _context.CheckInRecords.Add(checkInRequest);
             await _context.SaveChangesAsync();
+
+            // ✅ TỰ ĐỘNG TẠO HÓA ĐƠN KHI CHECK-IN
+            try
+            {
+                var pricing = await _context.RoomPricingConfigs
+                    .Where(p => p.RoomId == roomId && p.IsActive)
+                    .OrderByDescending(p => p.EffectiveFrom)
+                    .FirstOrDefaultAsync();
+
+                decimal amount = room.MonthlyRent > 0 ? room.MonthlyRent : (pricing?.MonthlyRent ?? 0);
+
+                var invoice = new Invoice
+                {
+                    ResidentId = residentId,
+                    RoomId = roomId,
+                    Amount = amount,
+                    Status = "Pending",
+                    Description = $"Check-in fee for room {room.RoomNumber}",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Invoices.Add(invoice);
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"✅ Auto-created Invoice #{invoice.Id} for Resident {residentId}, Room {roomId}, Amount: {amount}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Warning: Could not auto-create invoice for check-in: {ex.Message}");
+                // Không lỗi ra, tiếp tục xử lý check-in
+            }
 
             // Gửi thông báo cho tất cả Staff và Admin
             await SendNotificationToStaffAndAdminAsync(
@@ -118,13 +149,23 @@
 
             if (isApproved)
             {
+                var invoice = await _context.Invoices
+                    .Where(i => i.ResidentId == record.ResidentId && i.RoomId == record.RoomId)
+                    .OrderByDescending(i => i.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                if (invoice == null)
+                    throw new Exception("Resident has not been billed for this check-in request.");
+
+                if (!string.Equals(invoice.Status, "Paid", StringComparison.OrdinalIgnoreCase))
+                    throw new Exception("Payment has not been completed for this check-in request.");
+
                 // Phê duyệt - cho phép check-in
                 record.Status = "CheckedIn";
                 record.CheckInTime = DateTime.UtcNow;
                 
                 // Cập nhật trạng thái phòng
-                record.Room.IsOccupied = true;
-                record.Room.IsAvailable = false; // ✨ Đồng bộ IsAvailable
+                record.Room.Status = "Occupied";
                 record.Room.CurrentResident = record.Resident.FullName; // Cập nhật tên cư dân hiện tại
                 
                 // Cập nhật thông tin resident
@@ -184,8 +225,7 @@
                 record.CheckOutTime = DateTime.UtcNow;
                 
                 // Cập nhật trạng thái phòng
-                record.Room.IsOccupied = false;
-                record.Room.IsAvailable = true; // ✨ Đồng bộ IsAvailable
+                record.Room.Status = "Available";
                 record.Room.CurrentResident = null; // Xóa tên cư dân hiện tại
                 
                 // Cập nhật thông tin resident

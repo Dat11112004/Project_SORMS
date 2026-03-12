@@ -45,8 +45,8 @@ export default function DashboardPage() {
   if (loading) return <LoadingSpinner text="Loading dashboard..." />;
 
   const totalRooms = rooms.length;
-  const availableRooms = rooms.filter((r) => r.isAvailable || !r.isOccupied).length;
-  const occupiedRooms = totalRooms - availableRooms;
+  const availableRooms = rooms.filter((r) => r.status === 'Available').length;
+  const occupiedRooms = rooms.filter((r) => r.status === 'Occupied').length;
   const pendingSR = serviceRequests.filter((r) => r.status === 'Pending').length;
 
   // Chart data
@@ -69,7 +69,7 @@ export default function DashboardPage() {
 
   // Revenue estimation by rooms
   const monthlyRevenue = rooms
-    .filter((r) => r.isOccupied)
+    .filter((r) => r.status === 'Occupied')
     .reduce((sum, r) => sum + (r.monthlyRent || 0), 0);
 
   const revenueData = [
@@ -154,7 +154,7 @@ export default function DashboardPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} />
               <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
-              <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: '#f1f5f9' }} formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']} />
+              <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: '#f1f5f9' }} formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']} />
               <Bar dataKey="revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

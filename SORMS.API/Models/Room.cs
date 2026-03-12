@@ -18,13 +18,16 @@ namespace SORMS.API.Models
 
         public int Floor { get; set; }
 
+        [Column(TypeName = "numeric(10,2)")]
         public decimal MonthlyRent { get; set; }
 
+        [Column(TypeName = "numeric(10,2)")]
         public decimal Area { get; set; }
 
-        public bool IsOccupied { get; set; }
+        [Required, MaxLength(20)]
+        public string Status { get; set; } = "Available"; // "Available", "Occupied", "Maintenance"
 
-        public bool IsAvailable { get; set; }
+        public DateTime? MaintenanceEndDate { get; set; }
 
         public string? Description { get; set; }
 
@@ -36,5 +39,6 @@ namespace SORMS.API.Models
 
         public ICollection<Resident> Residents { get; set; } = new List<Resident>();
         public ICollection<CheckInRecord> CheckInRecords { get; set; } = new List<CheckInRecord>();
+        public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     }
 }
