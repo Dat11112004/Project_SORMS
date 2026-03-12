@@ -23,11 +23,11 @@ namespace SORMS.API.Services
             {
                 Title = dto.Title,
                 Content = dto.Content,
-                GeneratedDate = DateTime.Now,
+                GeneratedDate = DateTime.UtcNow,
                 CreatedBy = createdBy,
                 StaffId = staffId,
                 Status = "Pending",
-                LastUpdated = DateTime.Now
+                LastUpdated = DateTime.UtcNow
             };
 
             _context.Reports.Add(report);
@@ -84,7 +84,7 @@ namespace SORMS.API.Services
 
             report.Title = dto.Title;
             report.Content = dto.Content;
-            report.LastUpdated = DateTime.Now;
+            report.LastUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;
@@ -118,8 +118,8 @@ namespace SORMS.API.Services
             report.Status = dto.Status; // "Reviewed" or "Rejected"
             report.AdminFeedback = dto.AdminFeedback;
             report.ReviewedBy = reviewedBy;
-            report.ReviewedDate = DateTime.Now;
-            report.LastUpdated = DateTime.Now;
+            report.ReviewedDate = DateTime.UtcNow;
+            report.LastUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;
@@ -136,11 +136,11 @@ namespace SORMS.API.Services
             var report = new Report
             {
                 Title = "Báo cáo tỷ lệ phòng sử dụng",
-                GeneratedDate = DateTime.Now,
+                GeneratedDate = DateTime.UtcNow,
                 CreatedBy = "System",
                 Content = $"Tổng số phòng: {totalRooms}\nPhòng đang sử dụng: {occupiedRooms}\nTỷ lệ sử dụng: {occupancyRate:F2}%",
                 Status = "Reviewed",
-                LastUpdated = DateTime.Now
+                LastUpdated = DateTime.UtcNow
             };
 
             _context.Reports.Add(report);
@@ -158,11 +158,11 @@ namespace SORMS.API.Services
             var report = new Report
             {
                 Title = "Báo cáo sử dụng dịch vụ",
-                GeneratedDate = DateTime.Now,
+                GeneratedDate = DateTime.UtcNow,
                 CreatedBy = "System",
                 Content = $"Tổng yêu cầu: {totalRequests}\nĐã hoàn thành: {completedRequests}\nĐang chờ: {pendingRequests}",
                 Status = "Reviewed",
-                LastUpdated = DateTime.Now
+                LastUpdated = DateTime.UtcNow
             };
 
             _context.Reports.Add(report);
@@ -184,11 +184,11 @@ namespace SORMS.API.Services
             //var report = new Report
             //{
             //    Title = "Báo cáo doanh thu",
-            //    GeneratedDate = DateTime.Now,
+            //    GeneratedDate = DateTime.UtcNow,
             //    CreatedBy = "System",
             //    Content = $"Tổng doanh thu đã thu: {totalRevenue:N0} VND\nDoanh thu chờ thanh toán: {pendingRevenue:N0} VND\nTổng cộng: {(totalRevenue + pendingRevenue):N0} VND",
             //    Status = "Reviewed",
-            //    LastUpdated = DateTime.Now
+            //    LastUpdated = DateTime.UtcNow
             //};
 
             //_context.Reports.Add(report);

@@ -10,15 +10,26 @@ import { Plus, Eye, Pencil, Trash2, Search } from 'lucide-react';
 export default function ResidentListPage() {
   const [residents, setResidents] = useState<ResidentDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const res = await residentApi.getAll();
       setResidents(res.data);
-    } catch { /* noop */ } finally { setLoading(false); }
+    } catch (err: any) {
+      const errorMsg = err.response?.status === 403 
+        ? 'You do not have permission to view residents.'
+        : err.message || 'Failed to load residents.';
+      setError(errorMsg);
+      console.error('Resident load error:', errorMsg, err);
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -40,6 +51,11 @@ export default function ResidentListPage() {
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Residents</h1>
         <Link to="/residents/create" className="btn btn-primary"><Plus size={18} /> Add Resident</Link>
       </div>
+      {error && (
+        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '1rem', marginBottom: '1.5rem', color: '#f87171' }}>
+          ⚠️ {error}
+        </div>
+      )}
       <div className="glass-card" style={{ padding: '1.25rem' }}>
         <div style={{ marginBottom: '1rem', position: 'relative' }}>
           <Search size={16} style={{ position: 'absolute', left: 12, top: 11, color: 'var(--text-muted)' }} />

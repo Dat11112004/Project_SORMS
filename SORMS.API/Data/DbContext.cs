@@ -15,6 +15,7 @@ namespace SORMS.API.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Room> Rooms { get; set; }
+        public DbSet<RoomPricingConfig> RoomPricingConfigs { get; set; }
         public DbSet<ServiceRequest> ServiceRequests { get; set; }
         public DbSet<Staff> Staffs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -44,6 +45,24 @@ namespace SORMS.API.Data
                 .WithMany(r => r.Invoices)
                 .HasForeignKey(i => i.ResidentId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ==========================
+            // 🔹 Room ↔ RoomPricingConfig (1-n)
+            // ==========================
+            modelBuilder.Entity<RoomPricingConfig>()
+                .HasOne(p => p.Room)
+                .WithMany()
+                .HasForeignKey(p => p.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ==========================
+            // 🔹 Staff ↔ RoomPricingConfig (1-n)
+            // ==========================
+            modelBuilder.Entity<RoomPricingConfig>()
+                .HasOne(p => p.UpdatedByStaff)
+                .WithMany()
+                .HasForeignKey(p => p.UpdatedByStaffId)
+                .OnDelete(DeleteBehavior.SetNull);
             
             // ==========================
             // 🔹 Resident ↔ Notification (1-n)

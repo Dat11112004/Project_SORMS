@@ -39,7 +39,7 @@ namespace SORMS.API.Models
         public string? CheckoutUrl { get; set; }
 
         [Required]
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? PaidAt { get; set; }
     }
