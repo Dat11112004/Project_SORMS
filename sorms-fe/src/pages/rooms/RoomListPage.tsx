@@ -71,7 +71,7 @@ export default function RoomListPage({ availableOnly = false }: { availableOnly?
                     <td>{r.floor}</td>
                     <td>{r.area} m²</td>
                     <td>${r.monthlyRent?.toLocaleString()}</td>
-                    <td><StatusBadge status={r.isOccupied ? 'Inactive' : 'Active'} /></td>
+                    <td><StatusBadge status={r.status} /></td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.25rem' }}>
                         <Link to={`/rooms/${r.id}`} className="btn btn-ghost btn-sm"><Eye size={16} /></Link>

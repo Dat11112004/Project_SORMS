@@ -9,8 +9,8 @@ namespace SORMS.API.DTOs
         public int Floor { get; set; }
         public decimal MonthlyRent { get; set; }
         public decimal Area { get; set; }
-        public bool IsOccupied { get; set; }
-        public bool IsAvailable { get; set; } // Opposite of IsOccupied
+        public string Status { get; set; } = "Available"; // Available, Occupied, Maintenance
+        public DateTime? MaintenanceEndDate { get; set; }
         public string? CurrentResident { get; set; }
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }

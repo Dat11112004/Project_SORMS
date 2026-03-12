@@ -1,4 +1,4 @@
-﻿namespace SORMS.API.Services
+namespace SORMS.API.Services
 {
     using Microsoft.EntityFrameworkCore;
     using SORMS.API.Data;
@@ -19,17 +19,17 @@
 
         public async Task<ServiceRequestDto> CreateRequestAsync(CreateServiceRequestDto dto, int residentId)
         {
-            // ✅ Kiểm tra Resident đã check-in chưa
+            // ? Ki?m tra Resident d� check-in chua
             var resident = await _context.Residents.FindAsync(residentId);
             if (resident == null)
-                throw new Exception("Không tìm thấy thông tin cư dân");
+                throw new Exception("Kh�ng t�m th?y th�ng tin cu d�n");
 
-            // Kiểm tra có check-in record với status "CheckedIn"
+            // Ki?m tra c� check-in record v?i status "CheckedIn"
             var hasActiveCheckIn = await _context.CheckInRecords
                 .AnyAsync(c => c.ResidentId == residentId && c.Status == "CheckedIn");
 
             if (!hasActiveCheckIn)
-                throw new Exception("Bạn phải check-in phòng trước khi gửi yêu cầu dịch vụ");
+                throw new Exception("B?n ph?i check-in ph�ng tru?c khi g?i y�u c?u d?ch v?");
 
             var request = new ServiceRequest
             {
@@ -37,10 +37,10 @@
                 ServiceType = dto.ServiceType,
                 Description = dto.Description,
                 Priority = dto.Priority,
-                RequestDate = DateTime.Now,
+                RequestDate = DateTime.UtcNow,
                 ResidentId = residentId,
                 Status = "Pending",
-                LastUpdated = DateTime.Now
+                LastUpdated = DateTime.UtcNow
             };
 
             _context.ServiceRequests.Add(request);
@@ -112,7 +112,7 @@
             if (request == null || request.ResidentId != residentId)
                 return false;
 
-            // Chỉ cho phép update nếu status là Pending
+            // Ch? cho ph�p update n?u status l� Pending
             if (request.Status != "Pending")
                 return false;
 
@@ -120,7 +120,7 @@
             request.ServiceType = dto.ServiceType;
             request.Description = dto.Description;
             request.Priority = dto.Priority;
-            request.LastUpdated = DateTime.Now;
+            request.LastUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;
@@ -133,7 +133,7 @@
             if (request == null || request.ResidentId != residentId)
                 return false;
 
-            // Chỉ cho phép xóa nếu status là Pending
+            // Ch? cho ph�p x�a n?u status l� Pending
             if (request.Status != "Pending")
                 return false;
 
@@ -154,14 +154,14 @@
             request.Status = dto.Status;
             request.StaffFeedback = dto.StaffFeedback;
             request.ReviewedBy = reviewedBy;
-            request.ReviewedDate = DateTime.Now;
+            request.ReviewedDate = DateTime.UtcNow;
             
             if (dto.Status == "Completed")
             {
-                request.CompletedDate = DateTime.Now;
+                request.CompletedDate = DateTime.UtcNow;
             }
             
-            request.LastUpdated = DateTime.Now;
+            request.LastUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;

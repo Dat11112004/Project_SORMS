@@ -82,7 +82,7 @@
                 IdentityNumber = residentDto.IdentityNumber,
                 Role = residentDto.Role,
                 RoomId = residentDto.RoomId,
-                CheckInDate = residentDto.CheckInDate.HasValue ? residentDto.CheckInDate.Value : DateTime.Now,
+                CheckInDate = residentDto.CheckInDate.HasValue ? residentDto.CheckInDate.Value : DateTime.UtcNow,
                 CheckOutDate = residentDto.CheckOutDate,
                 Address = residentDto.Address,
                 EmergencyContact = residentDto.EmergencyContact,
