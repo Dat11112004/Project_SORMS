@@ -105,6 +105,7 @@ export interface RoomDto {
   isAvailable: boolean;
   currentResident?: string;
   description?: string;
+  imageUrl?: string;
   isActive: boolean;
 }
 

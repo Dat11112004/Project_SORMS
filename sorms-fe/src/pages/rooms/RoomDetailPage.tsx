@@ -34,10 +34,20 @@ export default function RoomDetailPage() {
         <Link to={`/rooms/${id}/edit`} className="btn btn-primary btn-sm"><Pencil size={16} /> Edit</Link>
       </div>
       <div className="glass-card" style={{ padding: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div className="gradient-secondary" style={{ width: 56, height: 56, borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>{room.roomNumber}</div>
-          <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Room {room.roomNumber}</h2>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+          {room.imageUrl ? (
+            <img 
+              src={`http://localhost:5183${room.imageUrl}`} 
+              alt={`Room ${room.roomNumber}`}
+              style={{ width: 200, height: 150, objectFit: 'cover', borderRadius: '0.75rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+            />
+          ) : (
+            <div className="gradient-secondary" style={{ width: 150, height: 150, borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 700, color: '#fff' }}>
+              {room.roomNumber}
+            </div>
+          )}
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>Room {room.roomNumber}</h2>
             <StatusBadge status={room.isOccupied ? 'Inactive' : 'Active'} />
           </div>
         </div>

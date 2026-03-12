@@ -175,7 +175,12 @@ builder.Services.AddCors(options =>
         app.UseSwaggerUI();
     }
 
-    // app.UseHttpsRedirection();
+
+    app.UseHttpsRedirection();
+    
+    // Enable serving static files from wwwroot
+    app.UseStaticFiles();
+
     app.UseCors("AllowAll");
     app.UseAuthentication();
     app.UseCors("AllowFrontend");

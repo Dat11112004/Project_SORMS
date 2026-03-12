@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -29,6 +29,8 @@ namespace SORMS.API.Models
         public string? Description { get; set; }
 
         public string? CurrentResident { get; set; }
+
+        public string? ImageUrl { get; set; }
 
         public bool IsActive { get; set; } = true;
 

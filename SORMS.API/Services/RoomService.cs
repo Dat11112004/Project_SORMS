@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SORMS.API.Data;
 using SORMS.API.DTOs;
 using SORMS.API.Interfaces;
@@ -32,6 +32,7 @@ namespace SORMS.API.Services
                 IsAvailable = r.IsAvailable,
                 CurrentResident = r.CurrentResident,
                 Description = r.Description,
+                ImageUrl = r.ImageUrl,
                 IsActive = r.IsActive
             });
         }
@@ -54,6 +55,7 @@ namespace SORMS.API.Services
                 IsAvailable = room.IsAvailable,
                 CurrentResident = room.CurrentResident,
                 Description = room.Description,
+                ImageUrl = room.ImageUrl,
                 IsActive = room.IsActive
             };
         }
@@ -70,6 +72,7 @@ namespace SORMS.API.Services
                 IsOccupied = roomDto.IsOccupied,
                 IsAvailable = roomDto.IsAvailable,
                 Description = roomDto.Description,
+                ImageUrl = roomDto.ImageUrl,
                 CurrentResident = roomDto.CurrentResident,
                 IsActive = roomDto.IsActive
             };
@@ -94,6 +97,7 @@ namespace SORMS.API.Services
             room.IsOccupied = roomDto.IsOccupied;
             room.IsAvailable = roomDto.IsAvailable;
             room.Description = roomDto.Description;
+            room.ImageUrl = roomDto.ImageUrl;
             room.CurrentResident = roomDto.CurrentResident;
             room.IsActive = roomDto.IsActive;
 
@@ -156,6 +160,7 @@ namespace SORMS.API.Services
                 IsAvailable = r.IsAvailable,
                 CurrentResident = r.CurrentResident,
                 Description = r.Description,
+                ImageUrl = r.ImageUrl,
                 IsActive = r.IsActive
             });
         }
