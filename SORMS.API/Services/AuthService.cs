@@ -102,7 +102,7 @@ namespace SORMS.API.Services
                     IdentityNumber = registerDto.IdentityNumber ?? "",
                     Role = null, // Sẽ được cập nhật sau (Lecturer/Staff/Guest)
                     RoomId = null, // Chưa có phòng
-                    CheckInDate = DateTime.Now,
+                    CheckInDate = DateTime.UtcNow,
                     CheckOutDate = null,
                     Address = registerDto.Address,
                     EmergencyContact = registerDto.EmergencyContact,

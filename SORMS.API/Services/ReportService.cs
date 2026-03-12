@@ -23,11 +23,11 @@ namespace SORMS.API.Services
             {
                 Title = dto.Title,
                 Content = dto.Content,
-                GeneratedDate = DateTime.Now,
+                GeneratedDate = DateTime.UtcNow,
                 CreatedBy = createdBy,
                 StaffId = staffId,
                 Status = "Pending",
-                LastUpdated = DateTime.Now
+                LastUpdated = DateTime.UtcNow
             };
 
             _context.Reports.Add(report);
@@ -84,7 +84,7 @@ namespace SORMS.API.Services
 
             report.Title = dto.Title;
             report.Content = dto.Content;
-            report.LastUpdated = DateTime.Now;
+            report.LastUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;
@@ -118,8 +118,8 @@ namespace SORMS.API.Services
             report.Status = dto.Status; // "Reviewed" or "Rejected"
             report.AdminFeedback = dto.AdminFeedback;
             report.ReviewedBy = reviewedBy;
-            report.ReviewedDate = DateTime.Now;
-            report.LastUpdated = DateTime.Now;
+            report.ReviewedDate = DateTime.UtcNow;
+            report.LastUpdated = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;

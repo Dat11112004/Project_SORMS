@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '../store/authStore';
 
 const API_BASE_URL = '/api';
 
@@ -10,21 +11,47 @@ const client = axios.create({
 // Request interceptor — attach JWT
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  
+  // 🔍 DEBUG: Log if token exists
+  if (!token && !config.url?.includes('/Auth/login') && !config.url?.includes('/Auth/register')) {
+    console.warn(`⚠️ No token for request: ${config.method?.toUpperCase()} ${config.url}`);
+  }
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log(`✅ Token attached to: ${config.method?.toUpperCase()} ${config.url}`);
   }
+  
   return config;
 });
 
-// Response interceptor — handle 401
+// Response interceptor — handle errors
 client.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`✅ Response OK: ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    return response;
+  },
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const url = error.config?.url;
+    
+    console.error(`❌ Error ${status}: ${error.config?.method?.toUpperCase()} ${url}`, error.response?.data);
+    
+    if (status === 401) {
+      // Token is invalid/expired → clear auth and redirect to login
+      console.warn('🔴 401 Unauthorized - Clearing auth and redirecting to login');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      useAuthStore.setState({ token: null, user: null, isAuthenticated: false });
       window.location.href = '/login';
     }
+    
+    if (status === 403) {
+      // User doesn't have permission for this endpoint
+      console.warn(`⚠️ 403 Forbidden - User lacks permission for ${url}`);
+      // Don't redirect, let the component handle it
+    }
+    
     return Promise.reject(error);
   }
 );

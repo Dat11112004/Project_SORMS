@@ -18,8 +18,10 @@ namespace SORMS.API.Models
 
         public int Floor { get; set; }
 
+        [Column(TypeName = "numeric(10,2)")]
         public decimal MonthlyRent { get; set; }
 
+        [Column(TypeName = "numeric(10,2)")]
         public decimal Area { get; set; }
 
         [Required, MaxLength(20)]

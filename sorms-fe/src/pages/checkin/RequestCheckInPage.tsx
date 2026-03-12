@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { roomApi } from '../../api/rooms';
 import { checkInApi } from '../../api/checkin';
-import type { RoomDto } from '../../types';
+import { paymentApi } from '../../api/payment';
+import type { RoomDto, InvoiceDto } from '../../types';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
+import CheckInPaymentModal from '../../components/CheckInPaymentModal';
 import { DoorOpen, LogIn } from 'lucide-react';
 
 export default function RequestCheckInPage() {
@@ -12,6 +14,8 @@ export default function RequestCheckInPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [currentInvoice, setCurrentInvoice] = useState<InvoiceDto | null>(null);
 
   const [checkInDate, setCheckInDate] = useState('');
   const [checkOutDate, setCheckOutDate] = useState('');
@@ -43,19 +47,59 @@ export default function RequestCheckInPage() {
       return;
     }
     if (!confirm('Request check-in to this room for selected dates?')) return;
-    setSubmitting(true); setError(''); setSuccess('');
+    setSubmitting(true); 
+    setError(''); 
+    setSuccess('');
     try {
-      await checkInApi.requestCheckIn({ 
+      // Step 1: Request check-in first
+      const checkInRes = await checkInApi.requestCheckIn({ 
         roomId,
         expectedCheckInDate: new Date(checkInDate).toISOString(),
         expectedCheckOutDate: new Date(checkOutDate).toISOString(),
         numberOfResidents: numberOfResidents
       });
-      setSuccess('Check-in request submitted! Waiting for approval.');
-      fetchAvailableRooms();
+      
+      if (!checkInRes.data?.success && checkInRes.data?.message) {
+        setError(checkInRes.data?.message || 'Failed to submit check-in request');
+        setSubmitting(false);
+        return;
+      }
+
+      setSuccess('Check-in request submitted!');
+
+      // Step 2: Reload rooms to update status
+      try {
+        fetchAvailableRooms();
+      } catch { /* noop */ }
+
+      // Step 3: Try to fetch invoice if any exist for payment
+      try {
+        const invoicesRes = await paymentApi.getMyInvoices();
+        const roomInvoice = invoicesRes.data?.find((inv: InvoiceDto) => 
+          inv.roomId === roomId && (inv.status === 'Pending' || inv.status === 'Created')
+        );
+        
+        if (roomInvoice) {
+          setCurrentInvoice(roomInvoice);
+          setShowPaymentModal(true);
+          setSuccess('Check-in request submitted! Please complete payment.');
+        }
+      } catch { /* noop - payment is optional */ }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to request check-in.');
-    } finally { setSubmitting(false); }
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to request check-in';
+      setError(errorMsg);
+      console.error('Check-in error:', err);
+    } finally { 
+      setSubmitting(false); 
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    setShowPaymentModal(false);
+    setSuccess('Payment received! Check-in pending staff approval.');
+    // Refresh rooms list
+    const newRoomsList = await roomApi.getAll();
+    setRooms(newRoomsList.data);
   };
 
   if (loading) return <LoadingSpinner />;
@@ -112,6 +156,12 @@ export default function RequestCheckInPage() {
           })}
         </div>
       )}
+      <CheckInPaymentModal 
+        isOpen={showPaymentModal} 
+        invoice={currentInvoice} 
+        onPaymentSuccess={handlePaymentSuccess} 
+        onCancel={() => setShowPaymentModal(false)} 
+      />
     </div>
   );
 }

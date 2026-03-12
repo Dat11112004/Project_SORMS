@@ -15,7 +15,7 @@ namespace SORMS.API
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<SormsDbContext>();
-            optionsBuilder.UseSqlServer(config.GetConnectionString("DefaultConnection"));
+            optionsBuilder.UseNpgsql(config.GetConnectionString("DefaultConnection"));
 
             return new SormsDbContext(optionsBuilder.Options);
         }

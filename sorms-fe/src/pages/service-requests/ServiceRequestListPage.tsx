@@ -12,6 +12,7 @@ import { useAuthStore } from '../../store/authStore';
 export default function ServiceRequestListPage({ myOnly = false, pendingOnly = false }: { myOnly?: boolean; pendingOnly?: boolean }) {
   const [requests, setRequests] = useState<ServiceRequestDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const { hasRole } = useAuthStore();
   const [reviewModal, setReviewModal] = useState(false);
@@ -22,13 +23,22 @@ export default function ServiceRequestListPage({ myOnly = false, pendingOnly = f
 
   const load = async () => {
     setLoading(true);
+    setError(null);
     try {
       let res;
       if (myOnly) res = await serviceRequestApi.getMyRequests();
       else if (pendingOnly) res = await serviceRequestApi.getPending();
       else res = await serviceRequestApi.getAll();
       setRequests(res.data);
-    } catch { /* noop */ } finally { setLoading(false); }
+    } catch (err: any) {
+      const errorMsg = err.response?.status === 403 
+        ? 'You do not have permission to view this data.'
+        : err.message || 'Failed to load service requests.';
+      setError(errorMsg);
+      console.error('ServiceRequest load error:', errorMsg, err);
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -60,6 +70,11 @@ export default function ServiceRequestListPage({ myOnly = false, pendingOnly = f
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{title}</h1>
         {hasRole('Resident') && <Link to="/service-requests/create" className="btn btn-primary"><Plus size={18} /> New Request</Link>}
       </div>
+      {error && (
+        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '1rem', marginBottom: '1.5rem', color: '#f87171' }}>
+          ⚠️ {error}
+        </div>
+      )}
       <div className="glass-card" style={{ padding: '1.25rem' }}>
         <div style={{ marginBottom: '1rem', position: 'relative' }}>
           <Search size={16} style={{ position: 'absolute', left: 12, top: 11, color: 'var(--text-muted)' }} />

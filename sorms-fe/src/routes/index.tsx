@@ -35,6 +35,10 @@ import StaffDetailPage from '../pages/staff/StaffDetailPage';
 import StaffFormPage from '../pages/staff/StaffFormPage';
 import StaffProfilePage from '../pages/staff/StaffProfilePage';
 import InvoicesPage from '../pages/invoices/InvoicesPage';
+import AdminPaymentPage from '../pages/invoices/AdminPaymentPage';
+import RoomPricingPage from '../pages/rooms/RoomPricingPage';
+import PaymentSuccessPage from '../pages/invoices/PaymentSuccessPage';
+import PaymentFailurePage from '../pages/invoices/PaymentFailurePage';
 import type { ReactNode } from 'react';
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -64,6 +68,10 @@ export default function AppRouter() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
 
+        {/* Payment Success/Failure Routes (Public) */}
+        <Route path="/payment/success" element={<PaymentSuccessPage />} />
+        <Route path="/payment/failure" element={<PaymentFailurePage />} />
+
         {/* Dashboard Routes */}
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<DashboardPage />} />
@@ -76,6 +84,7 @@ export default function AppRouter() {
           <Route path="/residents/:id/edit" element={<RoleRoute roles={['Admin','Staff']}><ResidentFormPage /></RoleRoute>} />
           <Route path="/my-profile" element={<RoleRoute roles={['Resident']}><MyProfilePage /></RoleRoute>} />
           <Route path="/resident/invoices" element={<RoleRoute roles={['Resident']}><InvoicesPage /></RoleRoute>} />
+          <Route path="/invoices" element={<RoleRoute roles={['Admin','Staff']}><AdminPaymentPage /></RoleRoute>} />
 
           {/* Rooms */}
           <Route path="/rooms" element={<RoomListPage />} />
@@ -83,6 +92,7 @@ export default function AppRouter() {
           <Route path="/rooms/create" element={<RoleRoute roles={['Admin','Staff']}><RoomFormPage /></RoleRoute>} />
           <Route path="/rooms/:id" element={<RoomDetailPage />} />
           <Route path="/rooms/:id/edit" element={<RoleRoute roles={['Admin','Staff']}><RoomFormPage /></RoleRoute>} />
+          <Route path="/rooms/pricing" element={<RoleRoute roles={['Admin','Staff']}><RoomPricingPage /></RoleRoute>} />
 
           {/* Check-In */}
           <Route path="/checkin/request" element={<RoleRoute roles={['Resident']}><RequestCheckInPage /></RoleRoute>} />

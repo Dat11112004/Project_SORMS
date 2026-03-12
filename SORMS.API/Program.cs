@@ -23,7 +23,7 @@ using System.Text;
     builder.Services.Configure<EmailConfig>(builder.Configuration.GetSection("EmailConfig"));
     builder.Services.Configure<AdminConfig>(builder.Configuration.GetSection("AdminAccount"));
 
-// 2. Cấu hình DbContext: chỉ dùng SQL Server
+// 2. Cấu hình DbContext: PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
@@ -31,9 +31,10 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 builder.Services.AddDbContext<SormsDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
 
 // 3. Đăng ký các service
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
     builder.Services.AddScoped<IAuthService, AuthService>();
@@ -44,8 +45,9 @@ builder.Services.AddScoped<IEmailService, EmailService>();
     builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
     builder.Services.AddScoped<IRoomService, RoomService>();
     builder.Services.AddScoped<IStaffService, StaffService>();
+    builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-    // PayOS Setup (Temporarily disabled due to missing Nuget Package)
+    // PayOS Setup (Now properly configured in PaymentService)
     // var payOsClientId = builder.Configuration["PayOS:ClientId"] ?? "";
     // var payOsApiKey = builder.Configuration["PayOS:ApiKey"] ?? "";
     // var payOsChecksumKey = builder.Configuration["PayOS:ChecksumKey"] ?? "";
@@ -61,7 +63,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 // ========== 4. JWT AUTHENTICATION ==========
 var jwtIssuer = configuration["Jwt:Issuer"];
     var jwtAudience = configuration["Jwt:Audience"];
-    var jwtKey = builder.Configuration["JwtConfig:key"];
+    var jwtKey = builder.Configuration["Jwt:Key"];
 
     if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 32)
     {

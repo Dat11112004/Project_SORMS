@@ -256,7 +256,9 @@ export interface ApiResponse<T> {
 export interface InvoiceDto {
   id: number;
   residentId: number;
+  residentName?: string;
   roomId?: number;
+  roomNumber?: string;
   amount: number;
   description: string;
   status: string;
@@ -314,4 +316,67 @@ export interface CreateFoodOrderRequest {
 
 export interface UpdateFoodOrderStatusRequest {
   status: string; // "Preparing", "Delivered", "Cancelled"
+}
+
+// ===== Payment and Invoices =====
+export interface CreateInvoiceRequest {
+  residentId: number;
+  roomId?: number;
+  amount: number;
+  description: string;
+  invoiceType: string;
+}
+
+export interface PaymentStatusDto {
+  invoiceId: number;
+  payOSOrderId: number;
+  status: string;
+  amount: number;
+  description: string;
+  createdAt: string;
+  paidAt?: string;
+  checkoutUrl?: string;
+  qrCodeDataUrl?: string;
+}
+
+export interface CreatePaymentLinkResponse {
+  success: boolean;
+  message: string;
+  checkoutUrl?: string;
+  orderCode?: number;
+  invoiceId?: number;
+  status?: string;
+  qrCodeDataUrl?: string;
+}
+
+export interface VerifyPaymentResponse {
+  success: boolean;
+  message: string;
+}
+
+// ===== Room Pricing =====
+export interface RoomPricingDto {
+  id: number;
+  roomId: number;
+  roomNumber: string;
+  monthlyRent: number;
+  electricityRate: number;
+  waterRate: number;
+  internetFee: number;
+  maintenanceFee: number;
+  totalEstimatedCost: number;
+  effectiveFrom: string;
+  effectiveTo?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface UpdateRoomPricingRequest {
+  monthlyRent: number;
+  electricityRate: number;
+  waterRate: number;
+  internetFee: number;
+  maintenanceFee: number;
+  notes?: string;
 }
