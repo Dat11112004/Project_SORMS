@@ -18,6 +18,13 @@ namespace SORMS.API.Services
         public async Task<IEnumerable<RoomDto>> GetAllRoomsAsync()
         {
             var rooms = await _context.Rooms.ToListAsync();
+            var currentTime = DateTime.UtcNow;
+            
+            var activeBookings = await _context.CheckInRecords
+                .Include(c => c.Resident)
+                .Where(c => c.Status != "Rejected" && c.Status != "CheckedOut" && c.ExpectedCheckInDate != null && c.ExpectedCheckOutDate != null)
+                .Where(c => c.Status == "CheckedIn" || (c.ExpectedCheckInDate <= currentTime && c.ExpectedCheckOutDate >= currentTime))
+                .ToListAsync();
 
             return rooms.Select(MapToRoomDto);
         }

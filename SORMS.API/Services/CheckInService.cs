@@ -95,12 +95,15 @@ namespace SORMS.API.Services
             {
                 ResidentId = residentId,
                 RoomId = roomId,
+                ExpectedCheckInDate = expectedCheckInDate,
+                ExpectedCheckOutDate = expectedCheckOutDate,
                 RequestTime = DateTime.UtcNow,
                 ExpectedCheckInDate = requestedCheckIn,
                 ExpectedCheckOutDate = requestedCheckOut,
                 NumberOfResidents = numberOfResidents,
                 Status = "PendingCheckIn",
-                RequestType = "CheckIn"
+                RequestType = "CheckIn",
+                NumberOfResidents = numberOfResidents
             };
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -263,8 +266,7 @@ namespace SORMS.API.Services
                 record.CheckInTime = DateTime.UtcNow;
                 
                 // Cập nhật trạng thái phòng
-                record.Room.Status = "Occupied";
-                record.Room.CurrentResident = record.Resident.FullName; // Cập nhật tên cư dân hiện tại
+                // Không cập nhật tĩnh, ta sẽ tính toán động ở RoomService
                 
                 // Cập nhật thông tin resident
                 record.Resident.RoomId = record.RoomId;
@@ -335,8 +337,7 @@ namespace SORMS.API.Services
                 record.CheckOutTime = DateTime.UtcNow;
                 
                 // Cập nhật trạng thái phòng
-                record.Room.Status = "Available";
-                record.Room.CurrentResident = null; // Xóa tên cư dân hiện tại
+                // Không cập nhật tĩnh, ta sẽ báo trống bằng logic của CheckInRecord
                 
                 // Cập nhật thông tin resident
                 record.Resident.RoomId = null;
@@ -516,7 +517,8 @@ namespace SORMS.API.Services
                 RejectReason = record.RejectReason,
                 ApprovedBy = record.ApprovedBy,
                 ApprovedByName = approvedByName,
-                RequestType = record.RequestType
+                RequestType = record.RequestType,
+                NumberOfResidents = record.NumberOfResidents
             };
         }
 

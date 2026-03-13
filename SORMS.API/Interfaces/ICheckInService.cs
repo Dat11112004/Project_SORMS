@@ -1,4 +1,4 @@
-﻿using SORMS.API.DTOs;
+using SORMS.API.DTOs;
 
 namespace SORMS.API.Interfaces
 {

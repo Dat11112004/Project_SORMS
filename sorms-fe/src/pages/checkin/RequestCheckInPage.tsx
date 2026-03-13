@@ -34,6 +34,20 @@ export default function RequestCheckInPage() {
     ? Math.max(0, Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / (1000 * 60 * 60 * 24)))
     : 0;
 
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
+  const [numberOfResidents, setNumberOfResidents] = useState(1);
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const fetchAvailableRooms = () => {
+    setLoading(true);
+    roomApi.getAvailable(checkInDate, checkOutDate)
+      .then((r) => setRooms(r.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
   useEffect(() => {
     loadAvailableRooms(true);
   }, []);
@@ -106,7 +120,7 @@ export default function RequestCheckInPage() {
         numberOfResidents,
       });
       
-      if (!checkInRes.data?.success) {
+      if (!checkInRes.data?.success && checkInRes.data?.message) {
         setError(checkInRes.data?.message || 'Failed to submit check-in request');
         setSubmitting(false);
         return;

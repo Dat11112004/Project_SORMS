@@ -275,14 +275,14 @@ export default function DashboardPage() {
   ];
 
   const serviceByType: Record<string, number> = {};
-  serviceRequests.forEach((sr) => {
+  serviceRequests.forEach((sr: ServiceRequestDto) => {
     serviceByType[sr.serviceType] = (serviceByType[sr.serviceType] || 0) + 1;
   });
   const serviceTypeData = Object.entries(serviceByType).map(([name, value]) => ({ name, value }));
   const topServiceTypes = [...serviceTypeData].sort((a, b) => b.value - a.value).slice(0, 4);
 
   const serviceByStatus: Record<string, number> = {};
-  serviceRequests.forEach((sr) => {
+  serviceRequests.forEach((sr: ServiceRequestDto) => {
     serviceByStatus[sr.status] = (serviceByStatus[sr.status] || 0) + 1;
   });
   const serviceStatusData = Object.entries(serviceByStatus).map(([name, value]) => ({ name, value }));
@@ -493,7 +493,8 @@ export default function DashboardPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

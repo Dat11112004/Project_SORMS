@@ -119,7 +119,7 @@ export default function RoomListPage({ availableOnly = false }: { availableOnly?
                     <td>
                       {r.imageUrl ? (
                         <img 
-                          src={`http://localhost:5183${r.imageUrl}`} 
+                          src={`${import.meta.env.VITE_API_URL || ''}${r.imageUrl}`} 
                           alt={`Room ${r.roomNumber}`}
                           style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: '1rem', boxShadow: '0 16px 34px -22px rgba(15, 23, 42, 0.45)' }}
                         />

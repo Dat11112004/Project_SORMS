@@ -132,13 +132,20 @@ namespace SORMS.API.Services
             var totalRooms = await _context.Rooms.CountAsync();
             var occupiedRooms = await _context.Rooms.CountAsync(r => r.Status == "Occupied");
             var occupancyRate = totalRooms == 0 ? 0 : (double)occupiedRooms / totalRooms * 100;
+            
+            var totalResidents = await _context.Residents.CountAsync();
+            var activeResidents = await _context.CheckInRecords
+                .Where(c => c.Status == "CheckedIn" || (c.Status != "Rejected" && c.Status != "CheckedOut" && c.ExpectedCheckInDate <= DateTime.UtcNow && c.ExpectedCheckOutDate >= DateTime.UtcNow))
+                .Select(c => c.ResidentId)
+                .Distinct()
+                .CountAsync();
 
             var report = new Report
             {
-                Title = "Báo cáo tỷ lệ phòng sử dụng",
+                Title = "Báo cáo tỷ lệ phòng và người ở",
                 GeneratedDate = DateTime.UtcNow,
                 CreatedBy = "System",
-                Content = $"Tổng số phòng: {totalRooms}\nPhòng đang sử dụng: {occupiedRooms}\nTỷ lệ sử dụng: {occupancyRate:F2}%",
+                Content = $"Tổng số phòng: {totalRooms}\nPhòng đang sử dụng: {occupiedRooms}\nTỷ lệ sử dụng phòng: {occupancyRate:F2}%\n\nTổng số cư dân (Residents): {totalResidents}\nSố cư dân đang ở: {activeResidents}",
                 Status = "Reviewed",
                 LastUpdated = DateTime.UtcNow
             };
@@ -160,7 +167,7 @@ namespace SORMS.API.Services
                 Title = "Báo cáo sử dụng dịch vụ",
                 GeneratedDate = DateTime.UtcNow,
                 CreatedBy = "System",
-                Content = $"Tổng yêu cầu: {totalRequests}\nĐã hoàn thành: {completedRequests}\nĐang chờ: {pendingRequests}",
+                Content = $"Tổng yêu cầu dịch vụ: {totalRequests}\nĐã hoàn thành: {completedRequests}\nĐang chờ: {pendingRequests}",
                 Status = "Reviewed",
                 LastUpdated = DateTime.UtcNow
             };
@@ -173,28 +180,40 @@ namespace SORMS.API.Services
 
         public async Task<ReportDto> GenerateRevenueReportAsync()
         {
-            //var totalRevenue = await _context.Billings
-            //    .Where(b => b.IsPaid)
-            //    .SumAsync(b => b.Amount);
+            var totalRevenue = await _context.Invoices
+                .Where(i => i.Status == "Paid")
+                .SumAsync(i => i.Amount);
 
-            //var pendingRevenue = await _context.Billings
-            //    .Where(b => !b.IsPaid)
-            //    .SumAsync(b => b.Amount);
+            var pendingRevenue = await _context.Invoices
+                .Where(i => i.Status == "Pending" || i.Status == "Overdue")
+                .SumAsync(i => i.Amount);
+                
+            var payingUsersCount = await _context.Invoices
+                .Where(i => i.Status == "Paid")
+                .Select(i => i.ResidentId)
+                .Distinct()
+                .CountAsync();
+                
+            var pendingUsersCount = await _context.Invoices
+                .Where(i => i.Status == "Pending" || i.Status == "Overdue")
+                .Select(i => i.ResidentId)
+                .Distinct()
+                .CountAsync();
 
-            //var report = new Report
-            //{
-            //    Title = "Báo cáo doanh thu",
-            //    GeneratedDate = DateTime.UtcNow,
-            //    CreatedBy = "System",
-            //    Content = $"Tổng doanh thu đã thu: {totalRevenue:N0} VND\nDoanh thu chờ thanh toán: {pendingRevenue:N0} VND\nTổng cộng: {(totalRevenue + pendingRevenue):N0} VND",
-            //    Status = "Reviewed",
-            //    LastUpdated = DateTime.UtcNow
-            //};
+            var report = new Report
+            {
+                Title = "Báo cáo doanh thu và thanh toán",
+                GeneratedDate = DateTime.UtcNow,
+                CreatedBy = "System",
+                Content = $"Tổng doanh thu đã thu: {totalRevenue:N0} VND\nDoanh thu chờ thanh toán: {pendingRevenue:N0} VND\nTổng cộng: {(totalRevenue + pendingRevenue):N0} VND\n\nSố lượng người đã thanh toán: {payingUsersCount}\nSố lượng người đang nợ: {pendingUsersCount}",
+                Status = "Reviewed",
+                LastUpdated = DateTime.UtcNow
+            };
 
-            //_context.Reports.Add(report);
-            //await _context.SaveChangesAsync();
+            _context.Reports.Add(report);
+            await _context.SaveChangesAsync();
 
-            return null;
+            return MapToDto(report);
         }
 
         // ==================== HELPER ====================
