@@ -176,7 +176,7 @@ label {
 .auth-card,
 .glass-card {
   position: relative;
-  overflow: clip;
+  overflow: visible;
   border: 1px solid var(--border-glass);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 250, 243, 0.72)),
@@ -232,6 +232,7 @@ label {
   color: var(--color-secondary);
   font-size: 0.75rem;
   font-weight: 700;
+  line-height: 1.3;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -247,8 +248,9 @@ label {
 .auth-display,
 .page-title {
   font-family: var(--font-display);
-  line-height: 1.08;
+  line-height: 1.14;
   letter-spacing: -0.03em;
+  padding-top: 0.04em;
 }
 
 .auth-display {
@@ -446,7 +448,7 @@ label {
 
 .hero-banner {
   position: relative;
-  overflow: clip;
+  overflow: visible;
   padding: 1.7rem;
   border-radius: 2rem;
   border: 1px solid var(--border-color);
@@ -513,8 +515,12 @@ label {
 }
 
 .metric-label {
+  display: block;
+  overflow: visible;
+  padding-top: 0.06rem;
   font-size: 0.76rem;
   font-weight: 700;
+  line-height: 1.35;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-soft);
@@ -688,7 +694,7 @@ label {
 
 .payment-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
   align-items: start;
 }
@@ -697,9 +703,9 @@ label {
   min-width: 0;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 1180px) {
   .payment-grid {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
   }
 }
 
@@ -716,8 +722,12 @@ label {
 }
 
 .payment-stat-label {
+  display: block;
+  overflow: visible;
+  padding-top: 0.06rem;
   font-size: 0.74rem;
   font-weight: 700;
+  line-height: 1.35;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-soft);
@@ -887,9 +897,12 @@ label {
 
 .form-label {
   display: block;
+  overflow: visible;
+  padding-top: 0.06rem;
   margin-bottom: 0.45rem;
   font-size: 0.8rem;
   font-weight: 700;
+  line-height: 1.35;
   letter-spacing: 0.03em;
   color: var(--text-secondary);
 }
@@ -904,6 +917,7 @@ label {
   border: 1px solid transparent;
   font-size: 0.9rem;
   font-weight: 700;
+  line-height: 1.25;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
@@ -983,6 +997,7 @@ label {
   border-radius: 999px;
   font-size: 0.74rem;
   font-weight: 800;
+  line-height: 1.25;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }

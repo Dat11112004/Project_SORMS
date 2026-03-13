@@ -146,7 +146,7 @@ export default function PaymentQrPanel({
                 <img src={qrCode} alt="Payment QR code" className="mx-auto aspect-square w-full max-w-[15rem] rounded-xl object-contain" />
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
                 <div className="rounded-2xl border border-[color:var(--border-color)] bg-[rgba(255,255,255,0.72)] p-3 dark:bg-[rgba(9,22,29,0.86)]">
                   <div className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Step 1</div>
                   <div className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">Open your banking app</div>

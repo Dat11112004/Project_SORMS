@@ -14,15 +14,15 @@ interface ConfirmDialogProps {
 }
 
 const variantStyles: Record<NonNullable<ConfirmDialogProps['variant']>, string> = {
-  danger: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-  warning: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  default: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300'
+  danger: 'bg-[rgba(185,28,28,0.12)] text-[var(--color-danger)] dark:bg-[rgba(185,28,28,0.22)] dark:text-[rgba(254,202,202,0.96)]',
+  warning: 'bg-[rgba(217,119,6,0.12)] text-[var(--color-warning)] dark:bg-[rgba(180,83,9,0.18)] dark:text-[var(--color-accent)]',
+  default: 'bg-[rgba(15,118,110,0.12)] text-[var(--color-primary)] dark:bg-[rgba(20,184,166,0.18)] dark:text-[var(--color-primary-light)]'
 };
 
 const confirmButtonStyles: Record<NonNullable<ConfirmDialogProps['variant']>, string> = {
-  danger: 'bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400',
-  warning: 'bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-400',
-  default: 'bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400'
+  danger: 'btn-danger',
+  warning: 'bg-[linear-gradient(135deg,var(--color-accent),var(--color-warning))] text-white shadow-[0_18px_38px_-24px_rgba(180,83,9,0.55)] hover:brightness-105',
+  default: 'btn-primary'
 };
 
 export default function ConfirmDialog({
@@ -37,13 +37,13 @@ export default function ConfirmDialog({
   onCancel
 }: ConfirmDialogProps) {
   return (
-    <Modal isOpen={isOpen} onClose={onCancel} title={title} maxWidth={520}>
+    <Modal isOpen={isOpen} onClose={onCancel} title={title} maxWidth={620}>
       <div className="space-y-5">
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 rounded-[1.4rem] border border-[color:var(--border-color)] bg-[var(--bg-elevated)] p-4">
           <div className={`mt-0.5 rounded-xl p-2.5 ${variantStyles[variant]}`}>
             <AlertTriangle size={18} />
           </div>
-          <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">{message}</p>
+          <p className="text-sm leading-6 text-[var(--text-secondary)]">{message}</p>
         </div>
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -60,7 +60,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className={`btn w-full text-white sm:w-auto ${confirmButtonStyles[variant]}`}
+            className={`btn w-full sm:w-auto ${confirmButtonStyles[variant]}`}
           >
             {loading ? 'Please wait...' : confirmText}
           </button>

@@ -89,7 +89,7 @@ export default function PaymentCheckout({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3">
         {[
           { step: '1', title: 'Create session', desc: 'Use the action below to create a PayOS payment session.' },
           { step: '2', title: 'Scan the QR', desc: 'Use your banking app to scan the QR code and transfer the payment.' },

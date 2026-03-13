@@ -219,14 +219,29 @@ export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'check
           </div>
         )}
       </div>
-      <Modal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} title="Reject Request">
-        <div>
-          <label className="form-label">Reject Reason</label>
-          <textarea className="form-input" rows={3} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Enter reason..." />
-        </div>
-        <div className="mt-4 flex justify-end gap-3">
-          <button onClick={() => setShowRejectModal(false)} className="btn btn-secondary">Cancel</button>
-          <button onClick={handleReject} className="btn btn-danger">Reject</button>
+      <Modal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} title="Reject Request" maxWidth={720}>
+        <div className="space-y-5">
+          <div className="rounded-[1.5rem] border border-[rgba(217,119,6,0.2)] bg-[radial-gradient(circle_at_top_right,_rgba(217,119,6,0.12),_transparent_30%),linear-gradient(145deg,rgba(255,249,242,0.92),rgba(255,255,255,0.82))] p-4 dark:border-[rgba(217,119,6,0.18)] dark:bg-[radial-gradient(circle_at_top_right,_rgba(217,119,6,0.12),_transparent_30%),linear-gradient(145deg,rgba(20,30,37,0.94),rgba(11,24,31,0.92))]">
+            <p className="text-sm leading-6 text-[var(--text-secondary)]">
+              Provide a short reason so the resident can understand why this request was not approved.
+            </p>
+          </div>
+
+          <div>
+            <label className="form-label">Reject Reason</label>
+            <textarea
+              className="form-input min-h-[140px] resize-y"
+              rows={5}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Enter reason..."
+            />
+          </div>
+
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button onClick={() => setShowRejectModal(false)} className="btn btn-secondary w-full sm:w-auto">Cancel</button>
+            <button onClick={handleReject} className="btn btn-danger w-full sm:w-auto">Reject</button>
+          </div>
         </div>
       </Modal>
 

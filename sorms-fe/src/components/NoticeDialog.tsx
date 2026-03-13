@@ -12,19 +12,19 @@ interface NoticeDialogProps {
 
 const noticeStyles = {
   success: {
-    shell: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+    shell: 'bg-[rgba(15,118,110,0.12)] text-[var(--color-primary-dark)] dark:bg-[rgba(20,184,166,0.18)] dark:text-[var(--color-primary-light)]',
     icon: CheckCircle2
   },
   error: {
-    shell: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+    shell: 'bg-[rgba(185,28,28,0.12)] text-[var(--color-danger)] dark:bg-[rgba(185,28,28,0.22)] dark:text-[rgba(254,202,202,0.96)]',
     icon: XCircle
   },
   warning: {
-    shell: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+    shell: 'bg-[rgba(217,119,6,0.12)] text-[var(--color-warning)] dark:bg-[rgba(180,83,9,0.18)] dark:text-[var(--color-accent)]',
     icon: TriangleAlert
   },
   info: {
-    shell: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
+    shell: 'bg-[rgba(15,118,110,0.12)] text-[var(--color-primary)] dark:bg-[rgba(20,184,166,0.18)] dark:text-[var(--color-primary-light)]',
     icon: Info
   }
 } as const;
@@ -41,17 +41,17 @@ export default function NoticeDialog({
   const Icon = meta.icon;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth={500}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth={560}>
       <div className="space-y-5">
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 rounded-[1.4rem] border border-[color:var(--border-color)] bg-[var(--bg-elevated)] p-4">
           <div className={`mt-0.5 rounded-xl p-2.5 ${meta.shell}`}>
             <Icon size={18} />
           </div>
-          <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">{message}</p>
+          <p className="text-sm leading-6 text-[var(--text-secondary)]">{message}</p>
         </div>
 
         <div className="flex justify-end">
-          <button type="button" onClick={onClose} className="btn btn-primary min-w-24">
+          <button type="button" onClick={onClose} className="btn btn-primary min-w-[8rem] sm:w-auto">
             {buttonText}
           </button>
         </div>

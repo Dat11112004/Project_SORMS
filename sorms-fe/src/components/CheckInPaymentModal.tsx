@@ -32,6 +32,8 @@ export default function CheckInPaymentModal({
   const [paymentSession, setPaymentSession] =
     useState<CreatePaymentLinkResponse | null>(null)
 
+  const modalWidth = paymentSession ? 1120 : 820
+
   if (!invoice) return null
 
   const formattedAmount = new Intl.NumberFormat('en-US', {
@@ -67,7 +69,7 @@ export default function CheckInPaymentModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onCancel} title="Check-in payment" maxWidth={720}>
+    <Modal isOpen={isOpen} onClose={onCancel} title="Check-in payment" maxWidth={modalWidth}>
       <div className="space-y-6">
 
         {/* HEADER */}
@@ -94,7 +96,7 @@ export default function CheckInPaymentModal({
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
             <div className="bg-white/20 rounded-xl p-3 backdrop-blur">
               <div className="text-xs opacity-70">Invoice</div>
               <div className="font-semibold break-all">#{invoice.id}</div>
@@ -115,7 +117,7 @@ export default function CheckInPaymentModal({
         </div>
 
         {/* INFO */}
-        <div className="grid lg:grid-cols-2 gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
             <div className="text-xs uppercase text-slate-500 dark:text-slate-400">
