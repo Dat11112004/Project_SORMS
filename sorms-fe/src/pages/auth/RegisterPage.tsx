@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { authApi } from '../../api/auth';
-import { UserPlus } from 'lucide-react';
+import { ArrowRight, ShieldCheck, UserPlus } from 'lucide-react';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -46,31 +46,35 @@ export default function RegisterPage() {
   const fields = [
     { name: 'email', label: 'Email *', type: 'email', required: true },
     { name: 'userName', label: 'Username *', type: 'text', required: true },
-    { name: 'fullName', label: 'Full Name', type: 'text' },
-    { name: 'phone', label: 'Phone', type: 'text' },
-    { name: 'identityNumber', label: 'Identity Number', type: 'text' },
+    { name: 'fullName', label: 'Full name', type: 'text' },
+    { name: 'phone', label: 'Phone number', type: 'text' },
+    { name: 'identityNumber', label: 'Identity number', type: 'text' },
     { name: 'address', label: 'Address', type: 'text' },
-    { name: 'emergencyContact', label: 'Emergency Contact', type: 'text' },
+    { name: 'emergencyContact', label: 'Emergency contact', type: 'text' },
     { name: 'password', label: 'Password *', type: 'password', required: true },
-    { name: 'confirmPassword', label: 'Confirm Password *', type: 'password', required: true },
+    { name: 'confirmPassword', label: 'Confirm password *', type: 'password', required: true },
   ];
 
   return (
     <div>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', textAlign: 'center' }}>
-        Create Account
-      </h2>
+      <div className="mb-7 text-center">
+        <span className="section-eyebrow">Resident onboarding</span>
+        <h2 className="mt-4 text-3xl font-bold text-[var(--text-primary)]">
+          Create an account to book and manage your stay
+        </h2>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">
+          Fill in your details to set up your resident profile, track check-in activity, and manage invoices in one dashboard.
+        </p>
+      </div>
+
       {error && (
-        <div style={{
-          background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem',
-          fontSize: '0.8125rem', color: '#f87171',
-        }}>{error}</div>
+        <div className="alert-banner alert-error mb-4">{error}</div>
       )}
+
       <form onSubmit={handleSubmit}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {fields.map((f) => (
-            <div key={f.name} style={f.name === 'address' ? { gridColumn: 'span 2' } : undefined}>
+            <div key={f.name} className={f.name === 'address' ? 'sm:col-span-2' : ''}>
               <label className="form-label">{f.label}</label>
               <input
                 type={f.type} name={f.name} className="form-input"
@@ -79,15 +83,25 @@ export default function RegisterPage() {
             </div>
           ))}
         </div>
-        <button type="submit" className="btn btn-primary btn-lg" disabled={loading}
-          style={{ width: '100%', marginTop: '1.25rem' }}>
+        <button type="submit" className="btn btn-primary btn-lg mt-5 w-full" disabled={loading}>
           <UserPlus size={18} />
-          {loading ? 'Creating...' : 'Create Account'}
+          {loading ? 'Creating account...' : 'Create account'}
         </button>
       </form>
-      <div style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+
+      <div className="card-subtle mt-5 flex items-center gap-3 text-sm text-[var(--text-secondary)]">
+        <ShieldCheck size={18} className="text-[var(--color-primary)]" />
+        <span>Your account will be created with the Resident role and can manage check-in requests, service requests, and invoices.</span>
+      </div>
+
+      <div className="mt-5 text-center text-sm text-[var(--text-muted)]">
         Already have an account?{' '}
-        <Link to="/login" style={{ color: 'var(--color-primary-light)', textDecoration: 'none' }}>Sign In</Link>
+        <Link to="/login" className="text-[var(--color-primary)] no-underline hover:underline">Sign in</Link>
+        <span className="mx-2">•</span>
+        <span className="inline-flex items-center gap-1 text-[var(--color-primary)]">
+          Quick access to sign-in
+          <ArrowRight size={14} />
+        </span>
       </div>
     </div>
   );

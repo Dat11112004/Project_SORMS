@@ -21,13 +21,17 @@ export default function BroadcastNotificationPage() {
   };
 
   return (
-    <div style={{ maxWidth: 600 }}>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Broadcast Notification</h1>
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
-        {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#f87171' }}>{error}</div>}
-        {success && <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#34d399' }}>{success}</div>}
+    <div className="page-shell max-w-3xl space-y-5">
+      <div className="page-header">
+        <h1 className="page-title">Broadcast Notification</h1>
+        <p className="page-subtitle">Send a single message to a full audience segment.</p>
+      </div>
+
+      <div className="glass-card p-6">
+        {error && <div className="alert-banner alert-error mb-4">{error}</div>}
+        {success && <div className="alert-banner alert-success mb-4">{success}</div>}
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
+          <div className="mb-4">
             <label className="form-label">Target Audience</label>
             <select className="form-input" value={targetRole} onChange={(e) => setTargetRole(e.target.value)}>
               <option value="All">All Users</option>
@@ -35,10 +39,10 @@ export default function BroadcastNotificationPage() {
               <option value="Staff">Staff Only</option>
             </select>
           </div>
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div className="mb-6">
             <label className="form-label">Message *</label>
             <textarea className="form-input" rows={4} value={message} onChange={(e) => setMessage(e.target.value)} required maxLength={500} placeholder="Enter notification message..." />
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{message.length}/500</p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">{message.length}/500</p>
           </div>
           <button type="submit" className="btn btn-primary" disabled={loading}>
             <Send size={18} /> {loading ? 'Sending...' : 'Send Broadcast'}

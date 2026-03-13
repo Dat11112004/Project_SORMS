@@ -91,6 +91,14 @@ namespace SORMS.API.Data
                 .HasForeignKey(c => c.RoomId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Room>()
+                .Property(r => r.MaxCapacity)
+                .HasDefaultValue(1);
+
+            modelBuilder.Entity<CheckInRecord>()
+                .Property(c => c.NumberOfResidents)
+                .HasDefaultValue(1);
+
             // ==========================
             // 🔹 ServiceRequest ↔ Resident (1-n)
             // ==========================

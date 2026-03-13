@@ -1,214 +1,228 @@
-import { useEffect, useState } from 'react';
-import { paymentApi } from '../../api/payment';
-import type { InvoiceDto } from '../../types';
-import StatusBadge from '../../components/StatusBadge';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import Modal from '../../components/Modal';
-import PaymentCheckout from '../../components/PaymentCheckout';
-import { CreditCard, Receipt, Eye } from 'lucide-react';
+import { useEffect, useState } from 'react'
+import { paymentApi } from '../../api/payment'
+import type { InvoiceDto } from '../../types'
+import StatusBadge from '../../components/StatusBadge'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import Modal from '../../components/Modal'
+import PaymentCheckout from '../../components/PaymentCheckout'
+import {
+  ArrowRight,
+  CalendarDays,
+  CreditCard,
+  Eye,
+  Receipt,
+  ShieldCheck,
+  Wallet
+} from 'lucide-react'
 
 export default function InvoicesPage() {
-  const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDto | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [invoices, setInvoices] = useState<InvoiceDto[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDto | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
 
   useEffect(() => {
-    fetchInvoices();
-  }, []);
+    fetchInvoices()
+  }, [])
 
   const fetchInvoices = async () => {
     try {
-      setLoading(true);
-      const res = await paymentApi.getMyInvoices();
+      setLoading(true)
+      const res = await paymentApi.getMyInvoices()
       if (res.success && res.data) {
-        setInvoices(res.data);
+        setInvoices(res.data)
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch invoices');
+      setError(err instanceof Error ? err.message : 'Failed to fetch invoices')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleViewDetails = (invoice: InvoiceDto) => {
-    setSelectedInvoice(invoice);
-    setShowDetailModal(true);
-  };
+    setSelectedInvoice(invoice)
+    setShowDetailModal(true)
+  }
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner />
 
-  const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0);
-  const paidAmount = invoices
-    .filter(inv => inv.status === 'Paid')
-    .reduce((sum, inv) => sum + inv.amount, 0);
-  const pendingAmount = invoices
-    .filter(inv => inv.status === 'Pending')
-    .reduce((sum, inv) => sum + inv.amount, 0);
+  const fmt = (v: number) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' }).format(v)
+
+  const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0)
+  const paidAmount = invoices.filter((i) => i.status === 'Paid').reduce((s, i) => s + i.amount, 0)
+  const pendingAmount = invoices.filter((i) => i.status === 'Pending').reduce((s, i) => s + i.amount, 0)
+  const latestInvoice = [...invoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
-          <Receipt className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-          My Invoices
-        </h1>
+    <div className="page-shell mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+      <div className="hero-banner">
+        <div className="hero-grid">
+          <div>
+            <span className="hero-kicker">
+              <Receipt size={14} />
+              Payment and invoices
+            </span>
+            <div className="page-header mt-5">
+              <h1 className="page-title">Invoices and payments, arranged clearly</h1>
+              <p className="page-subtitle">
+                Track total cost, paid balance, and individual invoice detail from one cleaner booking-style view.
+              </p>
+            </div>
+          </div>
+
+          <div className="spotlight-card flex flex-col justify-between">
+            <div>
+              <div className="metric-label">Latest update</div>
+              <div className="mt-3 text-2xl font-extrabold text-[var(--text-primary)]">
+                {latestInvoice ? latestInvoice.description : 'No invoice has been issued yet'}
+              </div>
+              <p className="mt-3 text-sm text-[var(--text-muted)]">
+                {latestInvoice
+                  ? `Issued on ${new Date(latestInvoice.createdAt).toLocaleDateString('en-US')} • ${fmt(latestInvoice.amount)}`
+                  : 'New invoices will appear here as soon as the system creates them.'}
+              </p>
+            </div>
+            <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-[var(--color-primary)]">
+              <ShieldCheck size={16} />
+              Secure checkout with PayOS
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="listing-summary">
+        <div className="metric-card">
+          <div className="metric-label">Total value</div>
+          <div className="metric-value">{fmt(totalAmount)}</div>
+          <div className="metric-note">{invoices.length} invoices</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Paid</div>
+          <div className="metric-value">{fmt(paidAmount)}</div>
+          <div className="metric-note">{invoices.filter((i) => i.status === 'Paid').length} completed payments</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Pending</div>
+          <div className="metric-value">{fmt(pendingAmount)}</div>
+          <div className="metric-note">{invoices.filter((i) => i.status === 'Pending').length} open invoices</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Completion rate</div>
+          <div className="metric-value">{invoices.length > 0 ? Math.round((paidAmount / totalAmount) * 100 || 0) : 0}%</div>
+          <div className="metric-note">Based on payment value</div>
+        </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
           {error}
         </div>
       )}
 
-      {/* Statistics */}
-      {invoices.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Amount</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount)}
-                </p>
-              </div>
-              <CreditCard className="w-8 h-8 text-blue-500" />
-            </div>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_320px]">
+        <div className="space-y-3">
+        {invoices.length === 0 ? (
+          <div className="glass-card p-10 text-center text-sm text-slate-500 dark:text-slate-400">
+            No invoices are available yet.
           </div>
+        ) : (
+          invoices.map((inv) => (
+            <div
+              key={inv.id}
+              className="payment-invoice-card transition-shadow hover:shadow-md"
+            >
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base font-semibold text-slate-900 dark:text-white">
+                      {inv.description}
+                    </span>
+                    <StatusBadge status={inv.status} />
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1">
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      {new Date(inv.createdAt).toLocaleDateString('en-US')}
+                    </span>
+                    <span>#{inv.id}</span>
+                    {inv.roomNumber && <span>Room {inv.roomNumber}</span>}
+                  </div>
+                </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Paid</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(paidAmount)}
-                </p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+                  <span className="break-words text-lg font-bold text-slate-900 dark:text-white">{fmt(inv.amount)}</span>
+                  <button
+                    onClick={() => handleViewDetails(inv)}
+                    className="btn btn-primary btn-sm sm:min-w-[8.5rem]"
+                  >
+                    {inv.status === 'Paid' ? <Eye className="h-4 w-4" /> : <CreditCard className="h-4 w-4" />}
+                    {inv.status === 'Paid' ? 'Details' : 'Pay now'}
+                  </button>
+                </div>
               </div>
-              <CreditCard className="w-8 h-8 text-green-500" />
             </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Pending</p>
-                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pendingAmount)}
-                </p>
-              </div>
-              <CreditCard className="w-8 h-8 text-orange-500" />
-            </div>
-          </div>
+          ))
+        )}
         </div>
-      )}
 
-      {/* Invoices Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900/50">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Invoice ID
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Date Issued
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {invoices.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                    No invoices found.
-                  </td>
-                </tr>
-              ) : (
-                invoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      #{inv.id}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900 dark:text-white">{inv.description}</div>
-                      {inv.roomNumber && (
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          Room {inv.roomNumber}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {new Intl.NumberFormat('vi-VN', {
-                          style: 'currency',
-                          currency: 'VND'
-                        }).format(inv.amount)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(inv.createdAt).toLocaleDateString('vi-VN')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={inv.status} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleViewDetails(inv)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors shadow-sm"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View & Pay
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="glass-card p-5">
+          <div className="metric-label">Quick guidance</div>
+          <div className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
+            <div className="card-subtle">
+              <div className="flex items-start gap-3">
+                <Wallet size={18} className="mt-0.5 text-[var(--color-primary)]" />
+                <div>
+                  <div className="font-semibold text-[var(--text-primary)]">Track total cost</div>
+                  <div className="text-xs text-[var(--text-muted)]">Every invoice is grouped by value, issue date, and linked room.</div>
+                </div>
+              </div>
+            </div>
+            <div className="card-subtle">
+              <div className="flex items-start gap-3">
+                <ShieldCheck size={18} className="mt-0.5 text-[var(--color-success)]" />
+                <div>
+                  <div className="font-semibold text-[var(--text-primary)]">Secure payment</div>
+                  <div className="text-xs text-[var(--text-muted)]">You can complete checkout directly inside the modal without leaving the dashboard.</div>
+                </div>
+              </div>
+            </div>
+            <div className="card-subtle">
+              <div className="flex items-start gap-3">
+                <ArrowRight size={18} className="mt-0.5 text-[var(--color-accent)]" />
+                <div>
+                  <div className="font-semibold text-[var(--text-primary)]">Handle pending invoices fast</div>
+                  <div className="text-xs text-[var(--text-muted)]">Use the payment action on each row to continue immediately.</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Payment Detail Modal */}
       <Modal
         isOpen={showDetailModal}
         onClose={() => {
-          setShowDetailModal(false);
-          setSelectedInvoice(null);
+          setShowDetailModal(false)
+          setSelectedInvoice(null)
         }}
-        title="Payment Details"
+        title="Payment details"
+        maxWidth={900}
       >
         {selectedInvoice && (
           <PaymentCheckout
             invoice={selectedInvoice}
             onPaymentSuccess={() => {
-              setSelectedInvoice((current) => current ? {
-                ...current,
-                status: 'Paid',
-                paidAt: new Date().toISOString()
-              } : current);
-              setShowDetailModal(false);
-              void fetchInvoices();
+              setShowDetailModal(false)
+              fetchInvoices()
             }}
-            onPaymentError={(error) => {
-              console.error('Payment error:', error);
+            onPaymentError={(err: string) => {
+              console.error(err)
             }}
           />
         )}
       </Modal>
     </div>
-  );
+  )
 }

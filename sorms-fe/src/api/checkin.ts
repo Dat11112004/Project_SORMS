@@ -1,6 +1,6 @@
 import client from './client';
 import type {
-  CheckInRecordDto, CreateCheckInRequest, CreateCheckOutRequest, ApproveCheckInRequest,
+  CheckInRecordDto, CreateCheckInRequest, CreateCheckOutRequest, CancelCheckInRequest, ApproveCheckInRequest,
 } from '../types';
 
 export const checkInApi = {
@@ -9,6 +9,9 @@ export const checkInApi = {
 
   requestCheckOut: (data: CreateCheckOutRequest) =>
     client.post('/CheckIn/request-checkout', data),
+
+  cancelCheckIn: (data: CancelCheckInRequest) =>
+    client.post('/CheckIn/cancel-checkin', data),
 
   approveCheckIn: (data: ApproveCheckInRequest) =>
     client.post('/CheckIn/approve-checkin', data),

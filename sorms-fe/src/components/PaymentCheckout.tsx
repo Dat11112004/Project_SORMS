@@ -1,9 +1,9 @@
 import { useState } from 'react';
+import { AlertCircle, ArrowRight, CheckCircle2, CreditCard, Loader, ShieldCheck } from 'lucide-react';
 import { paymentApi } from '../api/payment';
 import type { CreatePaymentLinkResponse, InvoiceDto } from '../types';
-import StatusBadge from './StatusBadge';
 import PaymentQrPanel from './PaymentQrPanel';
-import { CreditCard, AlertCircle, Loader } from 'lucide-react';
+import StatusBadge from './StatusBadge';
 
 interface PaymentCheckoutProps {
   invoice: InvoiceDto;
@@ -22,10 +22,14 @@ export default function PaymentCheckout({
   const [error, setError] = useState<string | null>(null);
   const [paymentSession, setPaymentSession] = useState<CreatePaymentLinkResponse | null>(null);
 
+  const fmt = (v: number) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' }).format(v);
+
   const handlePayment = async () => {
     if (invoice.status === 'Paid') {
-      setError('This invoice has already been paid');
-      onPaymentError?.('This invoice has already been paid');
+      const msg = 'This invoice has already been paid.';
+      setError(msg);
+      onPaymentError?.(msg);
       return;
     }
 
@@ -33,96 +37,98 @@ export default function PaymentCheckout({
       setLoading(true);
       setError(null);
 
-      // Generate return and cancel URLs
-      const currentUrl = window.location.origin;
-      const returnUrl = `${currentUrl}/payment/success?invoice_id=${invoice.id}`;
-      const cancelUrl = `${currentUrl}/payment/failure?invoice_id=${invoice.id}`;
+      const origin = window.location.origin;
+      const returnUrl = `${origin}/payment/success?invoice_id=${invoice.id}`;
+      const cancelUrl = `${origin}/payment/failure?invoice_id=${invoice.id}`;
 
       const res = await paymentApi.createPaymentLink(invoice.id, returnUrl, cancelUrl);
 
       if (res.success && res.checkoutUrl) {
         setPaymentSession(res);
         onPaymentInitiated?.(res.checkoutUrl);
-      } else {
-        throw new Error(res.message || 'Failed to create payment link');
+        return;
       }
+
+      throw new Error(res.message || 'Unable to create the payment link.');
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to initiate payment';
+      const errorMsg = err instanceof Error ? err.message : 'Payment initialization failed.';
       setError(errorMsg);
       onPaymentError?.(errorMsg);
-      console.error('Payment error details:', err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full space-y-4">
-      {/* Invoice Summary */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900 dark:text-white">
-            Invoice #{invoice.id}
-          </h3>
-          <StatusBadge status={invoice.status} />
-        </div>
-
-        {/* Details */}
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center justify-between py-2 border-t border-gray-200 dark:border-gray-700">
-            <span className="text-gray-600 dark:text-gray-400">Description:</span>
-            <span className="font-medium text-gray-900 dark:text-white">
+    <div className="space-y-5">
+      <div className="payment-invoice-card">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Invoice #{invoice.id}
+            </p>
+            <h3 className="mt-1 text-xl font-bold leading-8 text-slate-900 dark:text-white">
               {invoice.description}
-            </span>
+            </h3>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              Issued on: {new Date(invoice.createdAt).toLocaleDateString('en-US')}
+            </p>
           </div>
-          <div className="flex items-center justify-between py-2">
-            <span className="text-gray-600 dark:text-gray-400">Amount:</span>
-            <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-              {new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND'
-              }).format(invoice.amount)}
-            </span>
-          </div>
-          <div className="flex items-center justify-between py-2 border-t border-gray-200 dark:border-gray-700">
-            <span className="text-gray-600 dark:text-gray-400">Date:</span>
-            <span className="text-gray-900 dark:text-white">
-              {new Date(invoice.createdAt).toLocaleDateString('vi-VN')}
-            </span>
+          <div className="sm:text-right sm:self-start">
+            <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--border-color)] bg-[var(--bg-elevated)] px-4 py-3 shadow-sm">
+              <CreditCard className="h-5 w-5 text-[var(--color-primary)] dark:text-[var(--color-primary-light)]" />
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Total to pay</p>
+                <p className="text-xl font-bold text-slate-900 dark:text-white">{fmt(invoice.amount)}</p>
+              </div>
+            </div>
+            <div className="mt-3 flex justify-start sm:justify-end">
+              <StatusBadge status={invoice.status} />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <div className="flex gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3">
+        {[
+          { step: '1', title: 'Create session', desc: 'Use the action below to create a PayOS payment session.' },
+          { step: '2', title: 'Scan the QR', desc: 'Use your banking app to scan the QR code and transfer the payment.' },
+          { step: '3', title: 'Confirm', desc: 'The system updates the invoice state automatically.' }
+        ].map((s) => (
+          <div
+            key={s.step}
+            className="rounded-xl border border-[color:var(--border-color)] bg-[var(--bg-elevated)] p-4 shadow-sm"
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(15,118,110,0.12)] text-sm font-bold text-[var(--color-primary)] dark:bg-[rgba(20,184,166,0.16)] dark:text-[var(--color-primary-light)]">
+              {s.step}
+            </div>
+            <h4 className="mt-3 font-semibold text-slate-900 dark:text-white">{s.title}</h4>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{s.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {invoice.status === 'Paid' && (
+        <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-900/20">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
           <div>
-            <p className="text-sm font-medium text-red-800 dark:text-red-300">
-              Payment Error
-            </p>
-            <p className="text-sm text-red-700 dark:text-red-400 mt-1">
-              {error}
+            <p className="font-medium text-emerald-800 dark:text-emerald-300">Invoice already completed</p>
+            <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-400">
+              No new payment session is required for this invoice.
             </p>
           </div>
         </div>
       )}
 
-      {/* Payment Information */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <div className="flex gap-3">
-          <CreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1">
-              Payment Information
-            </h4>
-            <p className="text-xs text-blue-800 dark:text-blue-400 leading-relaxed">
-              Click "Pay Now" to generate a QR code. You can scan it with your banking app or open the PayOS checkout page.
-            </p>
+      {error && (
+        <div className="flex items-start gap-3 rounded-xl border border-[rgba(217,119,6,0.24)] bg-[rgba(217,119,6,0.1)] p-4 dark:border-[rgba(217,119,6,0.28)] dark:bg-[rgba(180,83,9,0.18)]">
+          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--color-warning)] dark:text-[var(--color-accent)]" />
+          <div>
+            <p className="font-medium text-[var(--color-warning)] dark:text-[var(--color-accent)]">Payment error</p>
+            <p className="mt-1 text-sm text-[var(--color-warning)]/90 dark:text-[var(--color-accent)]/90">{error}</p>
           </div>
         </div>
-      </div>
+      )}
 
       {paymentSession && (
         <PaymentQrPanel
@@ -133,25 +139,25 @@ export default function PaymentCheckout({
         />
       )}
 
-      {/* Payment Button */}
       <button
         onClick={handlePayment}
         disabled={loading || invoice.status === 'Paid'}
-        className={`w-full py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
+        className={`flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-semibold transition-colors sm:w-auto ${
           invoice.status === 'Paid'
-            ? 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+            ? 'cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
             : loading
-            ? 'bg-indigo-600 text-white cursor-wait'
-            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-md'
+              ? 'cursor-wait bg-[var(--color-primary)] text-white'
+              : 'bg-[linear-gradient(135deg,var(--color-primary),var(--color-primary-light))] text-white shadow-[0_18px_40px_-24px_rgba(15,118,110,0.75)] hover:brightness-105'
         }`}
       >
-        {loading && <Loader className="w-5 h-5 animate-spin" />}
-        {invoice.status === 'Paid' ? 'Already Paid' : paymentSession ? 'Regenerate QR' : 'Pay Now'}
+        {loading && <Loader className="h-4 w-4 animate-spin" />}
+        {invoice.status === 'Paid' ? 'Already paid' : paymentSession ? 'Generate QR again' : 'Pay now'}
+        {!loading && invoice.status !== 'Paid' && <ArrowRight className="h-4 w-4" />}
       </button>
 
-      {/* Security Note */}
-      <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-        Secured payment powered by PayOS
+      <p className="flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
+        <ShieldCheck className="h-3.5 w-3.5" />
+        Secured by PayOS
       </p>
     </div>
   );

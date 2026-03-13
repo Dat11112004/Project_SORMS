@@ -18,7 +18,7 @@ const getInitialTheme = (): Theme => {
       return 'dark';
     }
   }
-  return 'dark'; // Defaulting to dark as the old system was dark-only
+  return 'light';
 };
 
 export const useThemeStore = create<ThemeState>((set) => ({

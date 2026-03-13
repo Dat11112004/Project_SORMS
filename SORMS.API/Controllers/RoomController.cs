@@ -88,9 +88,12 @@ namespace SORMS.API.Controllers
         /// </summary>
         [HttpGet("available")]
         [Authorize(Roles = "Admin,Staff,Resident")]
-        public async Task<IActionResult> GetAvailableRooms([FromQuery] DateTime? checkInDate, [FromQuery] DateTime? checkOutDate)
+        public async Task<IActionResult> GetAvailableRooms([FromQuery] DateTime? checkIn, [FromQuery] DateTime? checkOut)
         {
-            var rooms = await _roomService.GetAvailableRoomsAsync(checkInDate, checkOutDate);
+            if (checkIn.HasValue && checkOut.HasValue && checkOut.Value.Date <= checkIn.Value.Date)
+                return BadRequest("Check-out phải lớn hơn Check-in.");
+
+            var rooms = await _roomService.GetAvailableRoomsAsync(checkIn, checkOut);
             return Ok(rooms);
         }
     }

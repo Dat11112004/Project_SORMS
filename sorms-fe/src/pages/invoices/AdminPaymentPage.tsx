@@ -4,6 +4,8 @@ import type { InvoiceDto } from '../../types';
 import StatusBadge from '../../components/StatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Modal from '../../components/Modal';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import NoticeDialog from '../../components/NoticeDialog';
 import { CreditCard, Trash2, Plus, DollarSign } from 'lucide-react';
 
 export default function AdminPaymentPage() {
@@ -11,6 +13,13 @@ export default function AdminPaymentPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creatingInvoice, setCreatingInvoice] = useState(false);
+  const [deleteInvoiceId, setDeleteInvoiceId] = useState<number | null>(null);
+  const [notice, setNotice] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'warning' | 'info' }>({
+    open: false,
+    title: '',
+    message: '',
+    variant: 'info'
+  });
 
   const [formData, setFormData] = useState({
     residentId: '',
@@ -45,7 +54,7 @@ export default function AdminPaymentPage() {
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.residentId || !formData.amount || !formData.description) {
-      alert('Please fill in all required fields');
+      setNotice({ open: true, title: 'Validation Error', message: 'Please fill in all required fields.', variant: 'warning' });
       return;
     }
 
@@ -69,26 +78,37 @@ export default function AdminPaymentPage() {
           description: '',
           invoiceType: 'Rent'
         });
-        alert('Invoice created successfully');
+        setNotice({ open: true, title: 'Invoice Created', message: 'Invoice created successfully.', variant: 'success' });
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to create invoice');
+      setNotice({
+        open: true,
+        title: 'Create Failed',
+        message: err instanceof Error ? err.message : 'Failed to create invoice',
+        variant: 'error'
+      });
     } finally {
       setCreatingInvoice(false);
     }
   };
 
-  const handleDeleteInvoice = async (invoiceId: number) => {
-    if (!confirm('Are you sure you want to delete this invoice?')) return;
-
+  const handleDeleteInvoice = async () => {
+    if (!deleteInvoiceId) return;
     try {
-      const res = await paymentApi.deleteInvoice(invoiceId);
+      const res = await paymentApi.deleteInvoice(deleteInvoiceId);
       if (res.success) {
-        setInvoices(invoices.filter(inv => inv.id !== invoiceId));
-        alert('Invoice deleted successfully');
+        setInvoices(invoices.filter(inv => inv.id !== deleteInvoiceId));
+        setNotice({ open: true, title: 'Invoice Deleted', message: 'Invoice deleted successfully.', variant: 'success' });
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to delete invoice');
+      setNotice({
+        open: true,
+        title: 'Delete Failed',
+        message: err instanceof Error ? err.message : 'Failed to delete invoice',
+        variant: 'error'
+      });
+    } finally {
+      setDeleteInvoiceId(null);
     }
   };
 
@@ -107,12 +127,12 @@ export default function AdminPaymentPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
-          <CreditCard className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+          <CreditCard className="w-8 h-8 text-[var(--color-primary)] dark:text-[var(--color-primary-light)]" />
           Payment Management
         </h1>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--color-primary),var(--color-primary-light))] px-4 py-2 text-white font-medium transition-all shadow-[0_18px_40px_-24px_rgba(15,118,110,0.75)] hover:brightness-105"
         >
           <Plus className="w-5 h-5" />
           Create Invoice
@@ -121,45 +141,45 @@ export default function AdminPaymentPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <div className="payment-invoice-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Amount</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm text-[var(--text-muted)]">Total Amount</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">
                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount)}
               </p>
             </div>
-            <DollarSign className="w-8 h-8 text-blue-500" />
+            <DollarSign className="w-8 h-8 text-[var(--color-primary)]" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <div className="payment-invoice-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Paid</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <p className="text-sm text-[var(--text-muted)]">Paid</p>
+              <p className="text-2xl font-bold text-[var(--color-primary)] dark:text-[var(--color-primary-light)]">
                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(paidAmount)}
               </p>
             </div>
-            <DollarSign className="w-8 h-8 text-green-500" />
+            <DollarSign className="w-8 h-8 text-[var(--color-primary-light)]" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <div className="payment-invoice-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Pending</p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+              <p className="text-sm text-[var(--text-muted)]">Pending</p>
+              <p className="text-2xl font-bold text-[var(--color-accent)] dark:text-[var(--color-accent)]">
                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pendingAmount)}
               </p>
             </div>
-            <DollarSign className="w-8 h-8 text-orange-500" />
+            <DollarSign className="w-8 h-8 text-[var(--color-accent)]" />
           </div>
         </div>
       </div>
 
       {/* Invoices Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="payment-surface rounded-[1.75rem] overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-900/50">
@@ -203,7 +223,7 @@ export default function AdminPaymentPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {inv.residentName || `Resident #${inv.residentId}`}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
+                    <td className="max-w-sm px-6 py-4 text-sm text-gray-900 dark:text-white whitespace-normal break-words">
                       {inv.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
@@ -217,8 +237,8 @@ export default function AdminPaymentPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
-                        onClick={() => handleDeleteInvoice(inv.id)}
-                        className="inline-flex items-center gap-2 px-3 py-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                        onClick={() => setDeleteInvoiceId(inv.id)}
+                        className="inline-flex items-center gap-2 rounded-lg px-3 py-1 text-[var(--color-warning)] transition-colors hover:bg-[rgba(217,119,6,0.1)] dark:hover:bg-[rgba(180,83,9,0.16)]"
                       >
                         <Trash2 className="w-4 h-4" />
                         Delete
@@ -248,7 +268,7 @@ export default function AdminPaymentPage() {
               required
               value={formData.residentId}
               onChange={(e) => setFormData({ ...formData, residentId: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-[color:var(--border-color)] bg-[var(--bg-input)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               placeholder="Enter resident ID"
             />
           </div>
@@ -261,7 +281,7 @@ export default function AdminPaymentPage() {
               type="number"
               value={formData.roomId}
               onChange={(e) => setFormData({ ...formData, roomId: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-[color:var(--border-color)] bg-[var(--bg-input)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               placeholder="Enter room ID"
             />
           </div>
@@ -276,7 +296,7 @@ export default function AdminPaymentPage() {
               required
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-[color:var(--border-color)] bg-[var(--bg-input)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               placeholder="0.00"
             />
           </div>
@@ -288,7 +308,7 @@ export default function AdminPaymentPage() {
             <select
               value={formData.invoiceType}
               onChange={(e) => setFormData({ ...formData, invoiceType: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-[color:var(--border-color)] bg-[var(--bg-input)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
             >
               <option value="Rent">Rent</option>
               <option value="Utility">Utility</option>
@@ -305,7 +325,7 @@ export default function AdminPaymentPage() {
               required
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-[color:var(--border-color)] bg-[var(--bg-input)] px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               placeholder="Enter invoice description"
               rows={3}
             />
@@ -315,20 +335,39 @@ export default function AdminPaymentPage() {
             <button
               type="button"
               onClick={() => setShowCreateModal(false)}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="rounded-lg border border-[color:var(--border-color)] px-4 py-2 text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={creatingInvoice}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+              className="rounded-lg bg-[linear-gradient(135deg,var(--color-primary),var(--color-primary-light))] px-4 py-2 text-white transition-all hover:brightness-105 disabled:bg-[var(--text-soft)]"
             >
               {creatingInvoice ? 'Creating...' : 'Create Invoice'}
             </button>
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={deleteInvoiceId !== null}
+        title="Delete Invoice"
+        message="Are you sure you want to delete this invoice? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={handleDeleteInvoice}
+        onCancel={() => setDeleteInvoiceId(null)}
+      />
+
+      <NoticeDialog
+        isOpen={notice.open}
+        title={notice.title}
+        message={notice.message}
+        variant={notice.variant}
+        onClose={() => setNotice((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 }

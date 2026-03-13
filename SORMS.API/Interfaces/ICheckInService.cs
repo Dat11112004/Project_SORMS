@@ -9,6 +9,9 @@ namespace SORMS.API.Interfaces
         
         // Resident tạo yêu cầu check-out
         Task<CheckInRecordDto> CreateCheckOutRequestAsync(int residentId, int checkInRecordId);
+
+        // Resident hủy yêu cầu check-in đang chờ
+        Task<bool> CancelPendingCheckInRequestAsync(int residentId, int checkInRecordId);
         
         // Staff/Admin phê duyệt hoặc từ chối
         Task<bool> ApproveCheckInRequestAsync(int requestId, int approverId, bool isApproved, string? rejectReason);

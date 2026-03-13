@@ -41,8 +41,14 @@ namespace SORMS.API.Controllers
                     return BadRequest(new { success = false, message = "Không tìm thấy thông tin resident. Vui lòng logout và login lại." });
                 }
 
-                Console.WriteLine($"[CheckIn API] Creating check-in request for ResidentId={residentId}, RoomId={request.RoomId}, CheckIn={request.ExpectedCheckInDate}, CheckOut={request.ExpectedCheckOutDate}, Guests={request.NumberOfResidents}");
-                var result = await _checkInService.CreateCheckInRequestAsync(residentId, request.RoomId, request.ExpectedCheckInDate, request.ExpectedCheckOutDate, request.NumberOfResidents);
+                Console.WriteLine($"[CheckIn API] Creating check-in request for ResidentId={residentId}, RoomId={request.RoomId}, CheckIn={request.CheckInDate:yyyy-MM-dd}, CheckOut={request.CheckOutDate:yyyy-MM-dd}");
+                var result = await _checkInService.CreateCheckInRequestAsync(
+                    residentId,
+                    request.RoomId,
+                    request.CheckInDate,
+                    request.CheckOutDate,
+                    request.NumberOfResidents
+                );
                 return Ok(new { 
                     success = true, 
                     message = "Yêu cầu check-in đã được gửi. Vui lòng chờ Staff/Admin phê duyệt.", 
@@ -74,6 +80,28 @@ namespace SORMS.API.Controllers
                     message = "Yêu cầu check-out đã được gửi. Vui lòng chờ Staff/Admin phê duyệt.", 
                     data = result 
                 });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// [RESIDENT] Hủy yêu cầu check-in đang chờ
+        /// </summary>
+        [Authorize(Roles = "Resident")]
+        [HttpPost("cancel-checkin")]
+        public async Task<IActionResult> CancelCheckIn([FromBody] CancelCheckInRequestDto request)
+        {
+            try
+            {
+                var residentId = int.Parse(User.FindFirst("ResidentId")?.Value ?? "0");
+                if (residentId == 0)
+                    return BadRequest(new { success = false, message = "Không tìm thấy thông tin resident" });
+
+                await _checkInService.CancelPendingCheckInRequestAsync(residentId, request.CheckInRecordId);
+                return Ok(new { success = true, message = "Đã hủy yêu cầu check-in." });
             }
             catch (Exception ex)
             {

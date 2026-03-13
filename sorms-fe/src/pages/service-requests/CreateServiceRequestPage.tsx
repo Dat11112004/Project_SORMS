@@ -21,17 +21,37 @@ export default function CreateServiceRequestPage() {
   };
 
   return (
-    <div style={{ maxWidth: 600 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <Link to="/service-requests/my" className="btn btn-ghost btn-sm"><ArrowLeft size={18} /></Link>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Create Service Request</h1>
+    <div className="page-shell mx-auto content-stack p-4 sm:p-6">
+      <div className="hero-banner">
+        <div className="hero-grid">
+          <div>
+            <span className="hero-kicker">Resident support</span>
+            <div className="page-header mt-5">
+              <h1 className="page-title">Create a service request</h1>
+              <p className="page-subtitle">
+                Send a clear task to the team with the right category, urgency, and description so it can be handled faster.
+              </p>
+            </div>
+            <div className="page-actions">
+              <Link to="/service-requests/my" className="btn btn-secondary btn-sm"><ArrowLeft size={18} /> Back to my requests</Link>
+            </div>
+          </div>
+          <div className="spotlight-card">
+            <div className="metric-label">Submission quality</div>
+            <div className="mt-3 text-2xl font-extrabold text-[var(--text-primary)]">Well-scoped requests get resolved faster.</div>
+            <p className="mt-3 text-sm text-[var(--text-muted)]">
+              Add a concise title and enough context for the operations team to understand the issue without follow-up.
+            </p>
+          </div>
+        </div>
       </div>
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
-        {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#f87171' }}>{error}</div>}
+
+      <div className="glass-card panel">
+        {error && <div className="alert-banner alert-error">{error}</div>}
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gap: '1rem' }}>
+          <div className="content-stack">
             <div><label className="form-label">Title *</label><input className="form-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-grid-2">
               <div><label className="form-label">Service Type</label>
                 <select className="form-input" value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })}>
                   <option>Maintenance</option><option>Cleaning</option><option>Electrical</option><option>Plumbing</option><option>Internet</option><option>Other</option>
@@ -45,7 +65,7 @@ export default function CreateServiceRequestPage() {
             </div>
             <div><label className="form-label">Description *</label><textarea className="form-input" rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required /></div>
           </div>
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ marginTop: '1.25rem' }}><Send size={18} /> {loading ? 'Submitting...' : 'Submit Request'}</button>
+          <button type="submit" className="btn btn-primary mt-5" disabled={loading}><Send size={18} /> {loading ? 'Submitting...' : 'Submit request'}</button>
         </form>
       </div>
     </div>

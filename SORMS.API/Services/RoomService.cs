@@ -26,30 +26,7 @@ namespace SORMS.API.Services
                 .Where(c => c.Status == "CheckedIn" || (c.ExpectedCheckInDate <= currentTime && c.ExpectedCheckOutDate >= currentTime))
                 .ToListAsync();
 
-            var activeBookingDict = activeBookings.GroupBy(b => b.RoomId).ToDictionary(g => g.Key, g => g.First());
-
-            return rooms.Select(r => {
-                var isOccupied = activeBookingDict.TryGetValue(r.Id, out var booking);
-                var dynStatus = isOccupied ? "Occupied" : (r.Status == "Maintenance" ? "Maintenance" : "Available");
-                var dynResident = isOccupied ? booking?.Resident?.FullName : (r.Status == "Occupied" ? r.CurrentResident : null);
-
-                return new RoomDto
-                {
-                    Id = r.Id,
-                    RoomNumber = r.RoomNumber,
-                    Type = r.Type,
-                    RoomType = r.Type,
-                    Floor = r.Floor,
-                    MonthlyRent = r.MonthlyRent,
-                    Area = r.Area,
-                    Status = dynStatus,
-                    MaintenanceEndDate = r.MaintenanceEndDate,
-                    CurrentResident = dynResident,
-                    Description = r.Description,
-                    ImageUrl = r.ImageUrl,
-                    IsActive = r.IsActive
-                };
-            });
+            return rooms.Select(MapToRoomDto);
         }
 
         public async Task<RoomDto> GetRoomByIdAsync(int id)
@@ -57,33 +34,7 @@ namespace SORMS.API.Services
             var room = await _context.Rooms.FindAsync(id);
             if (room == null) return null;
 
-            var currentTime = DateTime.UtcNow;
-            var activeBooking = await _context.CheckInRecords
-                .Include(c => c.Resident)
-                .Where(c => c.RoomId == id && c.Status != "Rejected" && c.Status != "CheckedOut" && c.ExpectedCheckInDate != null && c.ExpectedCheckOutDate != null)
-                .Where(c => c.Status == "CheckedIn" || (c.ExpectedCheckInDate <= currentTime && c.ExpectedCheckOutDate >= currentTime))
-                .FirstOrDefaultAsync();
-
-            var isOccupied = activeBooking != null;
-            var dynStatus = isOccupied ? "Occupied" : (room.Status == "Maintenance" ? "Maintenance" : "Available");
-            var dynResident = isOccupied ? activeBooking?.Resident?.FullName : (room.Status == "Occupied" ? room.CurrentResident : null);
-
-            return new RoomDto
-            {
-                Id = room.Id,
-                RoomNumber = room.RoomNumber,
-                Type = room.Type,
-                RoomType = room.Type, // Alias
-                Floor = room.Floor,
-                MonthlyRent = room.MonthlyRent,
-                Area = room.Area,
-                Status = dynStatus,
-                MaintenanceEndDate = room.MaintenanceEndDate,
-                CurrentResident = dynResident,
-                Description = room.Description,
-                ImageUrl = room.ImageUrl,
-                IsActive = room.IsActive
-            };
+            return MapToRoomDto(room);
         }
 
         public async Task<RoomDto> CreateRoomAsync(RoomDto roomDto)
@@ -95,6 +46,7 @@ namespace SORMS.API.Services
                 Floor = roomDto.Floor,
                 MonthlyRent = roomDto.MonthlyRent,
                 Area = roomDto.Area,
+                MaxCapacity = roomDto.MaxCapacity <= 0 ? 1 : roomDto.MaxCapacity,
                 Status = roomDto.Status,
                 MaintenanceEndDate = roomDto.MaintenanceEndDate,
                 Description = roomDto.Description,
@@ -130,6 +82,7 @@ namespace SORMS.API.Services
             room.Floor = roomDto.Floor;
             room.MonthlyRent = roomDto.MonthlyRent;
             room.Area = roomDto.Area;
+            room.MaxCapacity = roomDto.MaxCapacity <= 0 ? 1 : roomDto.MaxCapacity;
             room.Status = roomDto.Status;
             room.MaintenanceEndDate = roomDto.MaintenanceEndDate;
             room.Description = roomDto.Description;
@@ -172,40 +125,51 @@ namespace SORMS.API.Services
 
         public async Task<IEnumerable<RoomDto>> GetAvailableRoomsAsync(DateTime? checkInDate = null, DateTime? checkOutDate = null)
         {
-            var query = _context.Rooms.Where(r => r.IsActive).AsQueryable();
+            var requestedCheckIn = NormalizeUtcDate(checkInDate ?? DateTime.UtcNow);
+            var requestedCheckOut = NormalizeUtcDate(checkOutDate ?? requestedCheckIn.AddDays(1));
 
-            DateTime targetCheckIn = checkInDate ?? DateTime.UtcNow;
-            DateTime targetCheckOut = checkOutDate ?? DateTime.UtcNow;
+            if (requestedCheckOut <= requestedCheckIn)
+                throw new ArgumentException("Check-out date must be greater than check-in date.");
 
-            // Find rooms that ARE NOT available
-            var bookedRoomIds = await _context.CheckInRecords
-                .Where(c => c.Status != "Rejected" && c.Status != "CheckedOut" && c.ExpectedCheckInDate != null && c.ExpectedCheckOutDate != null)
-                .Where(c => (c.ExpectedCheckInDate < targetCheckOut && c.ExpectedCheckOutDate > targetCheckIn) || (c.Status == "CheckedIn" && targetCheckIn < DateTime.UtcNow.AddHours(1))) // If currently checked in and we are looking at 'now'
-                .Select(c => c.RoomId)
-                .Distinct()
+            var activeBookingStatuses = new[] { "PendingCheckIn", "CheckedIn", "PendingCheckOut" };
+
+            var availableRooms = await _context.Rooms
+                .Where(r => r.IsActive)
+                .Where(r => r.Status != "Maintenance" || !r.MaintenanceEndDate.HasValue || r.MaintenanceEndDate.Value.Date <= requestedCheckIn)
+                .Where(r => !_context.CheckInRecords.Any(c =>
+                    c.RoomId == r.Id &&
+                    activeBookingStatuses.Contains(c.Status) &&
+                    requestedCheckIn < (c.ExpectedCheckOutDate) &&
+                    requestedCheckOut > (c.ExpectedCheckInDate)))
                 .ToListAsync();
 
-            query = query.Where(r => !bookedRoomIds.Contains(r.Id)); 
-            query = query.Where(r => r.Status != "Maintenance");
+            return availableRooms.Select(MapToRoomDto);
+        }
 
-            var availableRooms = await query.ToListAsync();
+        private static DateTime NormalizeUtcDate(DateTime value)
+        {
+            return DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
+        }
 
-            return availableRooms.Select(r => new RoomDto
+        private static RoomDto MapToRoomDto(Room room)
+        {
+            return new RoomDto
             {
-                Id = r.Id,
-                RoomNumber = r.RoomNumber,
-                Type = r.Type,
-                RoomType = r.Type, // Alias
-                Floor = r.Floor,
-                MonthlyRent = r.MonthlyRent,
-                Area = r.Area,
-                Status = "Available",
-                MaintenanceEndDate = r.MaintenanceEndDate,
-                CurrentResident = string.Empty,
-                Description = r.Description,
-                ImageUrl = r.ImageUrl,
-                IsActive = r.IsActive
-            });
+                Id = room.Id,
+                RoomNumber = room.RoomNumber,
+                Type = room.Type,
+                RoomType = room.Type,
+                Floor = room.Floor,
+                MonthlyRent = room.MonthlyRent,
+                Area = room.Area,
+                MaxCapacity = room.MaxCapacity > 0 ? room.MaxCapacity : 1,
+                Status = room.Status,
+                MaintenanceEndDate = room.MaintenanceEndDate,
+                CurrentResident = room.CurrentResident,
+                Description = room.Description,
+                ImageUrl = room.ImageUrl,
+                IsActive = room.IsActive
+            };
         }
     }
 }

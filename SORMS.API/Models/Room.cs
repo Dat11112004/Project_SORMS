@@ -24,6 +24,8 @@ namespace SORMS.API.Models
         [Column(TypeName = "numeric(10,2)")]
         public decimal Area { get; set; }
 
+        public int MaxCapacity { get; set; } = 1;
+
         [Required, MaxLength(20)]
         public string Status { get; set; } = "Available"; // "Available", "Occupied", "Maintenance"
 

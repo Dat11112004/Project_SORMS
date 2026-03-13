@@ -25,33 +25,28 @@ export default function ForgotPasswordPage() {
 
   return (
     <div>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem', textAlign: 'center' }}>
+      <h2 className="mb-2 text-center text-xl font-semibold text-[var(--text-primary)]">
         Forgot Password
       </h2>
-      <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '1.5rem' }}>
+      <p className="mb-6 text-center text-sm text-[var(--text-muted)]">
         Enter your email to receive an OTP code
       </p>
       {error && (
-        <div style={{
-          background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem',
-          fontSize: '0.8125rem', color: '#f87171',
-        }}>{error}</div>
+        <div className="alert-banner alert-error mb-4">{error}</div>
       )}
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '1.5rem' }}>
+        <div className="mb-6">
           <label className="form-label">Email</label>
           <input type="email" className="form-input" placeholder="Enter your email"
             value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
-        <button type="submit" className="btn btn-primary btn-lg" disabled={loading}
-          style={{ width: '100%' }}>
+        <button type="submit" className="btn btn-primary btn-lg w-full" disabled={loading}>
           <Mail size={18} />
           {loading ? 'Sending...' : 'Send OTP'}
         </button>
       </form>
-      <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.8125rem' }}>
-        <Link to="/login" style={{ color: 'var(--color-primary-light)', textDecoration: 'none' }}>
+      <div className="mt-6 text-center text-sm">
+        <Link to="/login" className="text-[var(--color-primary-light)] no-underline hover:underline">
           Back to Sign In
         </Link>
       </div>

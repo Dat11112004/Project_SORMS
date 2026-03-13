@@ -132,6 +132,11 @@ namespace SORMS.API.DTOs
         public int RoomId { get; set; }
         public string RoomNumber { get; set; } = string.Empty;
         public decimal MonthlyRent { get; set; }
+        public decimal DailyRate
+        {
+            get => MonthlyRent;
+            set => MonthlyRent = value;
+        }
         public decimal ElectricityRate { get; set; }
         public decimal WaterRate { get; set; }
         public decimal InternetFee { get; set; }
@@ -147,6 +152,11 @@ namespace SORMS.API.DTOs
     public class UpdateRoomPricingDto
     {
         public decimal MonthlyRent { get; set; }
+        public decimal DailyRate
+        {
+            get => MonthlyRent;
+            set => MonthlyRent = value;
+        }
         public decimal ElectricityRate { get; set; }
         public decimal WaterRate { get; set; }
         public decimal InternetFee { get; set; }

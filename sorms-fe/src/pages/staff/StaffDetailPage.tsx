@@ -18,20 +18,42 @@ export default function StaffDetailPage() {
   if (!staff) return <div style={{ padding: '2rem', color: 'var(--text-muted)' }}>Staff not found.</div>;
 
   return (
-    <div style={{ maxWidth: 600 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <Link to="/staff" className="btn btn-ghost btn-sm"><ArrowLeft size={18} /></Link>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, flex: 1 }}>Staff Detail</h1>
-        <Link to={`/staff/${id}/edit`} className="btn btn-primary btn-sm"><Pencil size={16} /> Edit</Link>
-      </div>
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div className="gradient-info" style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700, color: '#fff' }}>{staff.fullName?.charAt(0)}</div>
-          <div><h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{staff.fullName}</h2><p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Staff Member</p></div>
+    <div className="page-shell mx-auto content-stack p-4 sm:p-6">
+      <div className="hero-banner">
+        <div className="hero-grid">
+          <div>
+            <span className="hero-kicker">Staff record</span>
+            <div className="page-header mt-5">
+              <h1 className="page-title">Staff profile details</h1>
+              <p className="page-subtitle">
+                Keep contact information and account ownership clear for operations and service coordination.
+              </p>
+            </div>
+            <div className="page-actions">
+              <Link to="/staff" className="btn btn-secondary btn-sm"><ArrowLeft size={18} /> Back to staff</Link>
+              <Link to={`/staff/${id}/edit`} className="btn btn-primary btn-sm"><Pencil size={16} /> Edit staff</Link>
+            </div>
+          </div>
+          <div className="spotlight-card flex flex-col justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="identity-badge gradient-info">{staff.fullName?.charAt(0)}</div>
+              <div>
+                <div className="text-lg font-semibold text-[var(--text-primary)]">{staff.fullName}</div>
+                <div className="mt-1 text-sm text-[var(--text-muted)]">Staff member</div>
+              </div>
+            </div>
+            <div className="page-actions">
+              <span className="stat-pill">Operations team</span>
+              <span className="stat-pill">Direct account owner</span>
+            </div>
+          </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div><p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email</p><p>{staff.email}</p></div>
-          <div><p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Phone</p><p>{staff.phone}</p></div>
+      </div>
+
+      <div className="glass-card panel">
+        <div className="detail-grid">
+          <div className="detail-item"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-soft)]">Email</p><p className="text-sm leading-6">{staff.email}</p></div>
+          <div className="detail-item"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-soft)]">Phone</p><p className="text-sm leading-6">{staff.phone || '—'}</p></div>
         </div>
       </div>
     </div>

@@ -39,33 +39,53 @@ export default function StaffFormPage({ isCreate = false }: { isCreate?: boolean
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div style={{ maxWidth: 600 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <Link to="/staff" className="btn btn-ghost btn-sm"><ArrowLeft size={18} /></Link>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{isCreate ? 'Create Staff' : 'Edit Staff'}</h1>
+    <div className="page-shell mx-auto content-stack p-4 sm:p-6">
+      <div className="hero-banner">
+        <div className="hero-grid">
+          <div>
+            <span className="hero-kicker">Staff account</span>
+            <div className="page-header mt-5">
+              <h1 className="page-title">{isCreate ? 'Add a new staff account' : 'Update staff account details'}</h1>
+              <p className="page-subtitle">
+                Maintain staff contact records and access credentials from one structured operations form.
+              </p>
+            </div>
+            <div className="page-actions">
+              <Link to="/staff" className="btn btn-secondary btn-sm"><ArrowLeft size={18} /> Back to staff</Link>
+            </div>
+          </div>
+          <div className="spotlight-card">
+            <div className="metric-label">Account setup</div>
+            <div className="mt-3 text-2xl font-extrabold text-[var(--text-primary)]">{isCreate ? 'Create a ready-to-use staff login.' : 'Keep staff records accurate and up to date.'}</div>
+            <p className="mt-3 text-sm text-[var(--text-muted)]">
+              Staff accounts support service coordination, resident communication, and daily operating workflows.
+            </p>
+          </div>
+        </div>
       </div>
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
-        {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#f87171' }}>{String(error)}</div>}
+
+      <div className="glass-card panel">
+        {error && <div className="alert-banner alert-error">{String(error)}</div>}
         {isCreate ? (
           <form onSubmit={handleSubmitCreate}>
-            <div style={{ display: 'grid', gap: '1rem' }}>
+            <div className="content-stack">
               <div><label className="form-label">Full Name *</label><input className="form-input" value={createForm.fullName} onChange={e => setCreateForm({ ...createForm, fullName: e.target.value })} required /></div>
               <div><label className="form-label">Email *</label><input type="email" className="form-input" value={createForm.email} onChange={e => setCreateForm({ ...createForm, email: e.target.value })} required /></div>
               <div><label className="form-label">Username *</label><input className="form-input" value={createForm.userName} onChange={e => setCreateForm({ ...createForm, userName: e.target.value })} required /></div>
               <div><label className="form-label">Password *</label><input type="password" className="form-input" value={createForm.password} onChange={e => setCreateForm({ ...createForm, password: e.target.value })} required minLength={6} /></div>
               <div><label className="form-label">Phone</label><input className="form-input" value={createForm.phone} onChange={e => setCreateForm({ ...createForm, phone: e.target.value })} /></div>
             </div>
-            <button type="submit" className="btn btn-primary" disabled={saving} style={{ marginTop: '1.25rem' }}><UserPlus size={18} /> {saving ? 'Creating...' : 'Create'}</button>
+            <button type="submit" className="btn btn-primary mt-5" disabled={saving}><UserPlus size={18} /> {saving ? 'Creating...' : 'Create staff account'}</button>
           </form>
         ) : (
           <form onSubmit={handleSubmitEdit}>
-            <div style={{ display: 'grid', gap: '1rem' }}>
+            <div className="content-stack">
               <div><label className="form-label">Full Name</label><input className="form-input" value={form.fullName || ''} onChange={e => setForm({ ...form, fullName: e.target.value })} /></div>
               <div><label className="form-label">Email</label><input type="email" className="form-input" value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
               <div><label className="form-label">Phone</label><input className="form-input" value={form.phone || ''} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
             </div>
-            <div style={{ marginTop: '1.25rem', display: 'flex', gap: '0.75rem' }}>
-              <button type="submit" className="btn btn-primary" disabled={saving}><Save size={18} /> Save</button>
+            <div className="page-actions mt-5">
+              <button type="submit" className="btn btn-primary" disabled={saving}><Save size={18} /> Save changes</button>
               <Link to="/staff" className="btn btn-secondary">Cancel</Link>
             </div>
           </form>

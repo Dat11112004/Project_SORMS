@@ -47,21 +47,37 @@ export default function ResidentFormPage() {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div style={{ maxWidth: 700 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <Link to="/residents" className="btn btn-ghost btn-sm"><ArrowLeft size={18} /></Link>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{isEdit ? 'Edit' : 'Create'} Resident</h1>
+    <div className="page-shell mx-auto content-stack p-4 sm:p-6">
+      <div className="hero-banner">
+        <div className="hero-grid">
+          <div>
+            <span className="hero-kicker">Resident record</span>
+            <div className="page-header mt-5">
+              <h1 className="page-title">{isEdit ? 'Update resident profile' : 'Create a resident profile'}</h1>
+              <p className="page-subtitle">
+                Keep identity, contact, and room assignment details organized in one structured form.
+              </p>
+            </div>
+            <div className="page-actions">
+              <Link to="/residents" className="btn btn-secondary btn-sm"><ArrowLeft size={18} /> Back to residents</Link>
+            </div>
+          </div>
+          <div className="spotlight-card">
+            <div className="metric-label">Form focus</div>
+            <div className="mt-3 text-2xl font-extrabold text-[var(--text-primary)]">Store reliable profile and room data.</div>
+            <p className="mt-3 text-sm text-[var(--text-muted)]">
+              This profile supports check-in operations, contact management, and resident-facing services.
+            </p>
+          </div>
+        </div>
       </div>
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
+
+      <div className="glass-card panel">
         {error && (
-          <div style={{
-            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-            borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem',
-            fontSize: '0.8125rem', color: '#f87171',
-          }}>{typeof error === 'string' ? error : 'An error occurred'}</div>
+          <div className="alert-banner alert-error">{typeof error === 'string' ? error : 'An error occurred'}</div>
         )}
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Full Name *</label>
               <input className="form-input" value={form.fullName || ''} onChange={(e) => setForm({ ...form, fullName: e.target.value })} required />
@@ -90,11 +106,11 @@ export default function ResidentFormPage() {
             <div>
               <label className="form-label">Room</label>
               <select className="form-input" value={form.roomId || ''} onChange={(e) => setForm({ ...form, roomId: e.target.value ? Number(e.target.value) : undefined })}>
-                <option value="">No Room</option>
+                <option value="">No room assigned</option>
                 {rooms.map((r) => <option key={r.id} value={r.id}>{r.roomNumber} ({r.type || r.roomType})</option>)}
               </select>
             </div>
-            <div style={{ gridColumn: 'span 2' }}>
+            <div className="sm:col-span-2">
               <label className="form-label">Address</label>
               <input className="form-input" value={form.address || ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             </div>
@@ -107,7 +123,7 @@ export default function ResidentFormPage() {
               <input className="form-input" value={form.notes || ''} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
           </div>
-          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
+          <div className="page-actions mt-6">
             <button type="submit" className="btn btn-primary" disabled={saving}>
               <Save size={18} /> {saving ? 'Saving...' : 'Save'}
             </button>

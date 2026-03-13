@@ -6,6 +6,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import StatusBadge from '../../components/StatusBadge';
 import Modal from '../../components/Modal';
+import NoticeDialog from '../../components/NoticeDialog';
 import { Check, X, AlertCircle } from 'lucide-react';
 
 export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'checkin' | 'checkout' }) {
@@ -17,6 +18,12 @@ export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'check
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [approvingId, setApprovingId] = useState<number | null>(null);
+  const [notice, setNotice] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'warning' | 'info' }>({
+    open: false,
+    title: '',
+    message: '',
+    variant: 'info'
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -35,7 +42,10 @@ export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'check
 
           for (const record of pendingRecords) {
             const roomInvoice = allInvoices
-              .filter((inv: InvoiceDto) => inv.residentId === record.residentId && inv.roomId === record.roomId)
+              .filter((inv: InvoiceDto) =>
+                inv.residentId === record.residentId &&
+                inv.roomId === record.roomId &&
+                (inv.status === 'Pending' || inv.status === 'Created' || inv.status === 'Paid'))
               .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0];
 
             if (roomInvoice) {
@@ -75,7 +85,12 @@ export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'check
   const handleApprove = async (id: number) => {
     // Check if payment is completed before approving check-in
     if (type === 'checkin' && invoices[id]?.status !== 'Paid') {
-      alert('Payment must be completed before approving check-in.');
+      setNotice({
+        open: true,
+        title: 'Payment Required',
+        message: 'Payment must be completed before approving check-in.',
+        variant: 'warning'
+      });
       return;
     }
     
@@ -83,8 +98,11 @@ export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'check
     try {
       const fn = type === 'checkin' ? checkInApi.approveCheckIn : checkInApi.approveCheckOut;
       await fn({ requestId: id, isApproved: true });
-      load();
-    } catch { alert('Failed to approve.'); } finally { setApprovingId(null); }
+      await load();
+      setNotice({ open: true, title: 'Request Approved', message: 'Request has been approved successfully.', variant: 'success' });
+    } catch {
+      setNotice({ open: true, title: 'Approve Failed', message: 'Failed to approve request.', variant: 'error' });
+    } finally { setApprovingId(null); }
   };
 
   const handleReject = async () => {
@@ -93,33 +111,37 @@ export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'check
       const fn = type === 'checkin' ? checkInApi.approveCheckIn : checkInApi.approveCheckOut;
       await fn({ requestId: selectedId, isApproved: false, rejectReason });
       setShowRejectModal(false); setRejectReason('');
-      load();
-    } catch { alert('Failed to reject.'); }
+      await load();
+      setNotice({ open: true, title: 'Request Rejected', message: 'Request has been rejected successfully.', variant: 'success' });
+    } catch {
+      setNotice({ open: true, title: 'Reject Failed', message: 'Failed to reject request.', variant: 'error' });
+    }
   };
 
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>
+    <div className="page-shell max-w-7xl space-y-6">
+      <h1 className="text-2xl font-bold text-[var(--text-primary)]">
         Pending {type === 'checkin' ? 'Check-In' : 'Check-Out'} Requests
       </h1>
       {error && (
-        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '1rem', marginBottom: '1.5rem', color: '#f87171' }}>
-          ⚠️ {error}
+        <div className="rounded-xl border border-red-300/60 bg-red-100/70 px-4 py-3 text-sm text-red-700 dark:border-red-700/60 dark:bg-red-900/25 dark:text-red-300">
+          {error}
         </div>
       )}
-      <div className="glass-card" style={{ padding: '1.25rem' }}>
+
+      <div className="glass-card p-5 sm:p-6">
         {records.length === 0 ? <EmptyState message="No pending requests" /> : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="overflow-x-auto">
             <table className="data-table">
               <thead>
                 <tr>
                   <th>Resident</th>
                   <th>Room</th>
+                  <th>Booking Window</th>
                   <th>Request Time</th>
-                  <th>Expected Dates</th>
-                  <th>Status</th>
+                  <th>Booking Status</th>
                   {type === 'checkin' && <th>Payment</th>}
                   <th>Actions</th>
                 </tr>
@@ -132,12 +154,11 @@ export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'check
                     <tr key={r.id}>
                       <td style={{ fontWeight: 500 }}>{r.residentName}</td>
                       <td>{r.roomNumber}</td>
-                      <td>{new Date(r.requestTime).toLocaleString()}</td>
-                      <td style={{ fontSize: '0.8125rem' }}>
-                        {r.expectedCheckInDate ? new Date(r.expectedCheckInDate).toLocaleDateString() : '—'} <br/>
-                        to {r.expectedCheckOutDate ? new Date(r.expectedCheckOutDate).toLocaleDateString() : '—'}
+                      <td>
+                        {new Date(r.expectedCheckInDate).toLocaleDateString()} - {new Date(r.expectedCheckOutDate).toLocaleDateString()}
                       </td>
-                      <td><StatusBadge status={r.status} /></td>
+                      <td>{new Date(r.requestTime).toLocaleString()}</td>
+                      <td><StatusBadge status={r.bookingStatus || r.status} /></td>
                       {type === 'checkin' && (
                         <td>
                           {invoice ? (
@@ -198,16 +219,39 @@ export default function PendingCheckInPage({ type = 'checkin' }: { type?: 'check
           </div>
         )}
       </div>
-      <Modal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} title="Reject Request">
-        <div>
-          <label className="form-label">Reject Reason</label>
-          <textarea className="form-input" rows={3} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Enter reason..." />
-        </div>
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-          <button onClick={() => setShowRejectModal(false)} className="btn btn-secondary">Cancel</button>
-          <button onClick={handleReject} className="btn btn-danger">Reject</button>
+      <Modal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} title="Reject Request" maxWidth={720}>
+        <div className="space-y-5">
+          <div className="rounded-[1.5rem] border border-[rgba(217,119,6,0.2)] bg-[radial-gradient(circle_at_top_right,_rgba(217,119,6,0.12),_transparent_30%),linear-gradient(145deg,rgba(255,249,242,0.92),rgba(255,255,255,0.82))] p-4 dark:border-[rgba(217,119,6,0.18)] dark:bg-[radial-gradient(circle_at_top_right,_rgba(217,119,6,0.12),_transparent_30%),linear-gradient(145deg,rgba(20,30,37,0.94),rgba(11,24,31,0.92))]">
+            <p className="text-sm leading-6 text-[var(--text-secondary)]">
+              Provide a short reason so the resident can understand why this request was not approved.
+            </p>
+          </div>
+
+          <div>
+            <label className="form-label">Reject Reason</label>
+            <textarea
+              className="form-input min-h-[140px] resize-y"
+              rows={5}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Enter reason..."
+            />
+          </div>
+
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button onClick={() => setShowRejectModal(false)} className="btn btn-secondary w-full sm:w-auto">Cancel</button>
+            <button onClick={handleReject} className="btn btn-danger w-full sm:w-auto">Reject</button>
+          </div>
         </div>
       </Modal>
+
+      <NoticeDialog
+        isOpen={notice.open}
+        title={notice.title}
+        message={notice.message}
+        variant={notice.variant}
+        onClose={() => setNotice((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 }

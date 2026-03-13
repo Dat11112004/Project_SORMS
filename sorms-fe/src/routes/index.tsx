@@ -1,45 +1,51 @@
+import { Suspense, lazy, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import AuthLayout from '../layouts/AuthLayout';
-import DashboardLayout from '../layouts/DashboardLayout';
-import LoginPage from '../pages/auth/LoginPage';
-import RegisterPage from '../pages/auth/RegisterPage';
-import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
-import VerifyOtpPage from '../pages/auth/VerifyOtpPage';
-import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
-import ChangePasswordPage from '../pages/auth/ChangePasswordPage';
-import DashboardPage from '../pages/dashboard/DashboardPage';
-import ResidentListPage from '../pages/residents/ResidentListPage';
-import ResidentDetailPage from '../pages/residents/ResidentDetailPage';
-import ResidentFormPage from '../pages/residents/ResidentFormPage';
-import MyProfilePage from '../pages/residents/MyProfilePage';
-import RoomListPage from '../pages/rooms/RoomListPage';
-import RoomDetailPage from '../pages/rooms/RoomDetailPage';
-import RoomFormPage from '../pages/rooms/RoomFormPage';
-import RequestCheckInPage from '../pages/checkin/RequestCheckInPage';
-import CheckInStatusPage from '../pages/checkin/CheckInStatusPage';
-import CheckInHistoryPage from '../pages/checkin/CheckInHistoryPage';
-import PendingCheckInPage from '../pages/checkin/PendingCheckInPage';
-import CheckInRecordsPage from '../pages/checkin/CheckInRecordsPage';
-import CreateServiceRequestPage from '../pages/service-requests/CreateServiceRequestPage';
-import ServiceRequestListPage from '../pages/service-requests/ServiceRequestListPage';
-import MyNotificationsPage from '../pages/notifications/MyNotificationsPage';
-import BroadcastNotificationPage from '../pages/notifications/BroadcastNotificationPage';
-import SendNotificationPage from '../pages/notifications/SendNotificationPage';
-import SentHistoryPage from '../pages/notifications/SentHistoryPage';
-import ReportListPage from '../pages/reports/ReportListPage';
-import CreateReportPage from '../pages/reports/CreateReportPage';
-import GeneratedReportPage from '../pages/reports/GeneratedReportPage';
-import StaffListPage from '../pages/staff/StaffListPage';
-import StaffDetailPage from '../pages/staff/StaffDetailPage';
-import StaffFormPage from '../pages/staff/StaffFormPage';
-import StaffProfilePage from '../pages/staff/StaffProfilePage';
-import InvoicesPage from '../pages/invoices/InvoicesPage';
-import AdminPaymentPage from '../pages/invoices/AdminPaymentPage';
-import RoomPricingPage from '../pages/rooms/RoomPricingPage';
-import PaymentSuccessPage from '../pages/invoices/PaymentSuccessPage';
-import PaymentFailurePage from '../pages/invoices/PaymentFailurePage';
-import type { ReactNode } from 'react';
+import LoadingSpinner from '../components/LoadingSpinner';
+
+const AuthLayout = lazy(() => import('../layouts/AuthLayout'));
+const DashboardLayout = lazy(() => import('../layouts/DashboardLayout'));
+const LoginPage = lazy(() => import('../pages/auth/LoginPage'));
+const RegisterPage = lazy(() => import('../pages/auth/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('../pages/auth/ForgotPasswordPage'));
+const VerifyOtpPage = lazy(() => import('../pages/auth/VerifyOtpPage'));
+const ResetPasswordPage = lazy(() => import('../pages/auth/ResetPasswordPage'));
+const ChangePasswordPage = lazy(() => import('../pages/auth/ChangePasswordPage'));
+const DashboardPage = lazy(() => import('../pages/dashboard/DashboardPage'));
+const ResidentListPage = lazy(() => import('../pages/residents/ResidentListPage'));
+const ResidentDetailPage = lazy(() => import('../pages/residents/ResidentDetailPage'));
+const ResidentFormPage = lazy(() => import('../pages/residents/ResidentFormPage'));
+const MyProfilePage = lazy(() => import('../pages/residents/MyProfilePage'));
+const RoomListPage = lazy(() => import('../pages/rooms/RoomListPage'));
+const RoomDetailPage = lazy(() => import('../pages/rooms/RoomDetailPage'));
+const RoomFormPage = lazy(() => import('../pages/rooms/RoomFormPage'));
+const RequestCheckInPage = lazy(() => import('../pages/checkin/RequestCheckInPage'));
+const CheckInStatusPage = lazy(() => import('../pages/checkin/CheckInStatusPage'));
+const CheckInHistoryPage = lazy(() => import('../pages/checkin/CheckInHistoryPage'));
+const PendingCheckInPage = lazy(() => import('../pages/checkin/PendingCheckInPage'));
+const CheckInRecordsPage = lazy(() => import('../pages/checkin/CheckInRecordsPage'));
+const CreateServiceRequestPage = lazy(() => import('../pages/service-requests/CreateServiceRequestPage'));
+const ServiceRequestListPage = lazy(() => import('../pages/service-requests/ServiceRequestListPage'));
+const MyNotificationsPage = lazy(() => import('../pages/notifications/MyNotificationsPage'));
+const BroadcastNotificationPage = lazy(() => import('../pages/notifications/BroadcastNotificationPage'));
+const SendNotificationPage = lazy(() => import('../pages/notifications/SendNotificationPage'));
+const SentHistoryPage = lazy(() => import('../pages/notifications/SentHistoryPage'));
+const ReportListPage = lazy(() => import('../pages/reports/ReportListPage'));
+const CreateReportPage = lazy(() => import('../pages/reports/CreateReportPage'));
+const GeneratedReportPage = lazy(() => import('../pages/reports/GeneratedReportPage'));
+const StaffListPage = lazy(() => import('../pages/staff/StaffListPage'));
+const StaffDetailPage = lazy(() => import('../pages/staff/StaffDetailPage'));
+const StaffFormPage = lazy(() => import('../pages/staff/StaffFormPage'));
+const StaffProfilePage = lazy(() => import('../pages/staff/StaffProfilePage'));
+const InvoicesPage = lazy(() => import('../pages/invoices/InvoicesPage'));
+const AdminPaymentPage = lazy(() => import('../pages/invoices/AdminPaymentPage'));
+const RoomPricingPage = lazy(() => import('../pages/rooms/RoomPricingPage'));
+const PaymentSuccessPage = lazy(() => import('../pages/invoices/PaymentSuccessPage'));
+const PaymentFailurePage = lazy(() => import('../pages/invoices/PaymentFailurePage'));
+
+function RouteFallback() {
+  return <LoadingSpinner text="Loading page..." />;
+}
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const isAuth = useAuthStore(s => s.isAuthenticated);
@@ -58,6 +64,7 @@ export default function AppRouter() {
 
   return (
     <BrowserRouter>
+      <Suspense fallback={<RouteFallback />}>
       <Routes>
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>
@@ -134,6 +141,7 @@ export default function AppRouter() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to={isAuth ? '/dashboard' : '/login'} replace />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

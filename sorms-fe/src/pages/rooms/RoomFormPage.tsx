@@ -18,7 +18,7 @@ export default function RoomFormPage() {
   const [error, setError] = useState('');
   
   const [form, setForm] = useState<Partial<RoomDto>>({
-    roomNumber: '', type: '', floor: 1, monthlyRent: 0, area: 0, description: '', isActive: true, imageUrl: '', status: 'Available'
+    roomNumber: '', type: '', floor: 1, dailyRate: 0, area: 0, maxCapacity: 1, description: '', isActive: true, imageUrl: '', status: 'Available'
   });
 
   useEffect(() => {
@@ -125,7 +125,8 @@ export default function RoomFormPage() {
             </select></div>
             <div><label className="form-label">Floor</label><input type="number" className="form-input" value={form.floor || 1} onChange={(e) => setForm({ ...form, floor: Number(e.target.value) })} /></div>
             <div><label className="form-label">Area (m²)</label><input type="number" step="0.1" className="form-input" value={form.area || 0} onChange={(e) => setForm({ ...form, area: Number(e.target.value) })} /></div>
-            <div><label className="form-label">Monthly Rent ($)</label><input type="number" step="0.01" className="form-input" value={form.monthlyRent || 0} onChange={(e) => setForm({ ...form, monthlyRent: Number(e.target.value) })} /></div>
+            <div><label className="form-label">Max Capacity</label><input type="number" min={1} className="form-input" value={form.maxCapacity || 1} onChange={(e) => setForm({ ...form, maxCapacity: Math.max(1, Number(e.target.value) || 1) })} /></div>
+            <div><label className="form-label">Daily Rate ($)</label><input type="number" step="0.01" className="form-input" value={form.dailyRate || form.monthlyRent || 0} onChange={(e) => setForm({ ...form, dailyRate: Number(e.target.value) })} /></div>
             <div>
               <label className="form-label">Status *</label>
               <select className="form-input" value={form.status || 'Available'} onChange={(e) => setForm({ ...form, status: e.target.value })} required>

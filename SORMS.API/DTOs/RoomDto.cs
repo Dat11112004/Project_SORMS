@@ -8,7 +8,13 @@ namespace SORMS.API.DTOs
         public string RoomType { get; set; } = string.Empty; // Alias for Type
         public int Floor { get; set; }
         public decimal MonthlyRent { get; set; }
+        public decimal DailyRate
+        {
+            get => MonthlyRent;
+            set => MonthlyRent = value;
+        }
         public decimal Area { get; set; }
+        public int MaxCapacity { get; set; } = 1;
         public string Status { get; set; } = "Available"; // Available, Occupied, Maintenance
         public DateTime? MaintenanceEndDate { get; set; }
         public string? CurrentResident { get; set; }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { authApi } from '../../api/auth';
-import { LogIn } from 'lucide-react';
+import { ArrowRight, LogIn, LockKeyhole, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -30,44 +30,73 @@ export default function LoginPage() {
 
   return (
     <div>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', textAlign: 'center' }}>
-        Sign In
-      </h2>
+      <div className="mb-7 text-center">
+        <span className="section-eyebrow">Resident and staff access</span>
+        <h2 className="mt-4 text-3xl font-bold text-[var(--text-primary)]">
+          Sign in to manage every stay with confidence
+        </h2>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">
+          Access rooms, check-in requests, invoices, and service tasks from one organized workspace.
+        </p>
+      </div>
+
       {error && (
-        <div style={{
-          background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem',
-          fontSize: '0.8125rem', color: '#f87171',
-        }}>{error}</div>
+        <div className="alert-banner alert-error mb-4">{error}</div>
       )}
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '1rem' }}>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
           <label className="form-label">Email</label>
-          <input
-            type="email" className="form-input" placeholder="Enter your email"
-            value={email} onChange={(e) => setEmail(e.target.value)} required
-          />
+          <div className="relative">
+            <Mail size={16} className="search-icon" />
+            <input
+              type="email"
+              className="form-input search-input"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+            />
+          </div>
         </div>
-        <div style={{ marginBottom: '1.5rem' }}>
+
+        <div>
           <label className="form-label">Password</label>
-          <input
-            type="password" className="form-input" placeholder="Enter your password"
-            value={password} onChange={(e) => setPassword(e.target.value)} required
-          />
+          <div className="relative">
+            <LockKeyhole size={16} className="search-icon" />
+            <input
+              type="password"
+              className="form-input search-input"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </div>
         </div>
-        <button type="submit" className="btn btn-primary btn-lg" disabled={loading}
-          style={{ width: '100%' }}>
+
+        <button type="submit" className="btn btn-primary btn-lg w-full" disabled={loading}>
           <LogIn size={18} />
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? 'Signing in...' : 'Sign in now'}
         </button>
       </form>
-      <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-        <Link to="/forgot-password" style={{ color: 'var(--color-primary-light)', textDecoration: 'none' }}>
-          Forgot Password?
+
+      <div className="card-subtle mt-5">
+        <div className="flex items-center justify-between gap-3 text-sm text-[var(--text-secondary)]">
+          <span>Need to recover your account or create a new one?</span>
+          <ArrowRight size={16} className="shrink-0 text-[var(--color-primary)]" />
+        </div>
+      </div>
+
+      <div className="mt-5 text-center text-sm text-[var(--text-muted)]">
+        <Link to="/forgot-password" className="text-[var(--color-primary)] no-underline hover:underline">
+          Forgot password?
         </Link>
-        <span style={{ margin: '0 0.5rem' }}>•</span>
-        <Link to="/register" style={{ color: 'var(--color-primary-light)', textDecoration: 'none' }}>
-          Create Account
+        <span className="mx-2">•</span>
+        <Link to="/register" className="text-[var(--color-primary)] no-underline hover:underline">
+          Create a new account
         </Link>
       </div>
     </div>

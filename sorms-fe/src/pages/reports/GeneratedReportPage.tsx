@@ -22,33 +22,33 @@ export default function GeneratedReportPage({ type }: { type: 'occupancy' | 'ser
   };
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{titleMap[type]}</h1>
+    <div className="page-shell max-w-6xl space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="page-title">{titleMap[type]}</h1>
+          <p className="page-subtitle">Generate and inspect report output without losing detail.</p>
+        </div>
         <button onClick={generate} className="btn btn-primary" disabled={loading}>
           <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> {loading ? 'Generating...' : 'Generate Report'}
         </button>
       </div>
-      {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#f87171' }}>{error}</div>}
+
+      {error && <div className="alert-banner alert-error">{error}</div>}
       {loading && <LoadingSpinner text="Generating report..." />}
       {data && !loading && (
-        <div className="glass-card" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-            <BarChart3 size={20} style={{ color: 'var(--color-primary)' }} />
-            <h3 style={{ fontWeight: 600 }}>Report Data</h3>
+        <div className="glass-card p-6">
+          <div className="mb-4 flex items-center gap-3">
+            <BarChart3 size={20} className="text-[var(--color-primary)]" />
+            <h3 className="text-base font-semibold text-[var(--text-primary)]">Report Data</h3>
           </div>
-          <pre style={{
-            background: 'var(--bg-primary)', padding: '1rem', borderRadius: '0.5rem',
-            fontSize: '0.8125rem', overflow: 'auto', maxHeight: 500,
-            color: 'var(--text-secondary)', whiteSpace: 'pre-wrap',
-          }}>
+          <pre className="max-h-[500px] overflow-auto rounded-xl bg-[var(--bg-primary)] p-4 text-xs text-[var(--text-secondary)] whitespace-pre-wrap">
             {typeof data === 'string' ? data : JSON.stringify(data, null, 2)}
           </pre>
         </div>
       )}
       {!data && !loading && (
-        <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-          <BarChart3 size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+        <div className="glass-card p-12 text-center text-[var(--text-muted)]">
+          <BarChart3 size={48} className="mx-auto mb-4 opacity-50" />
           <p>Click "Generate Report" to view data</p>
         </div>
       )}
